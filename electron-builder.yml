@@ -1,0 +1,42 @@
+appId: dev.lucio73.yoink
+productName: Yoink
+copyright: Copyright © 2026 Lucio73
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+
+# No binaries are shipped inside the installer. yt-dlp, ffmpeg and deno are
+# fetched on first run into %APPDATA%/Yoink/bin so they can be updated
+# independently of the app and stay legally clean to redistribute.
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  icon: build/icon.ico
+  artifactName: ${productName}-${version}-${arch}-${target}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Yoink
+  deleteAppDataOnUninstall: false
+
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+
+publish:
+  provider: github
+  releaseType: release

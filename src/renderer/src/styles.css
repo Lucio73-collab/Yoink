@@ -1,0 +1,202 @@
+@import 'tailwindcss';
+
+@import '@fontsource-variable/outfit';
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+@import '@fontsource-variable/jetbrains-mono';
+
+@theme {
+  /* Catppuccin Mocha */
+  --color-crust: #11111b;
+  --color-mantle: #181825;
+  --color-base: #1e1e2e;
+  --color-surface0: #313244;
+  --color-surface1: #45475a;
+  --color-surface2: #585b70;
+  --color-overlay0: #6c7086;
+  --color-overlay1: #7f849c;
+  --color-overlay2: #9399b2;
+  --color-subtext0: #a6adc8;
+  --color-subtext1: #bac2de;
+  --color-text: #cdd6f4;
+
+  --color-green: #a6e3a1;
+  --color-teal: #94e2d5;
+  --color-sky: #89dceb;
+  --color-blue: #89b4fa;
+  --color-lavender: #b4befe;
+  --color-mauve: #cba6f7;
+  --color-pink: #f5c2e7;
+  --color-red: #f38ba8;
+  --color-maroon: #eba0ac;
+  --color-peach: #fab387;
+  --color-yellow: #f9e2af;
+
+  --font-display: 'Outfit Variable', ui-sans-serif, sans-serif;
+  --font-sans: 'Geist Sans', ui-sans-serif, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-surface0);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-crust);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-green) 30%, transparent);
+    color: var(--color-text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-green);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Scrollbars are part of a dense UI, not an afterthought. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface0);
+    border: 3px solid var(--color-crust);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-surface1);
+  }
+}
+
+@layer components {
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    letter-spacing: -0.01em;
+  }
+
+  .rule {
+    border-bottom: 1px solid color-mix(in oklab, var(--color-surface0) 70%, transparent);
+  }
+
+  /* The signature detail: the queue row IS the progress bar. */
+  .job-row {
+    position: relative;
+    isolation: isolate;
+  }
+  .job-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform-origin: left;
+    transform: scaleX(var(--fill, 0));
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-green) 13%, transparent),
+      color-mix(in oklab, var(--color-green) 5%, transparent)
+    );
+    transition: transform 420ms var(--ease-out);
+  }
+  .job-row[data-state='error']::before {
+    background: color-mix(in oklab, var(--color-red) 10%, transparent);
+  }
+  .job-row[data-state='canceled']::before {
+    background: color-mix(in oklab, var(--color-overlay0) 8%, transparent);
+  }
+
+  /* Indeterminate sweep for the pre-progress phase. */
+  .sweep::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-green) 10%, transparent),
+      transparent
+    );
+    animation: sweep 1.4s linear infinite;
+  }
+
+  @keyframes sweep {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .enter {
+    animation: enter 220ms var(--ease-out) both;
+  }
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
