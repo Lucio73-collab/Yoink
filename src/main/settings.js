@@ -52,6 +52,12 @@ export const DEFAULTS = {
   spotifyMatchCandidates: 5,
 
   // App
+  // Recover automatically from known failures instead of surfacing them raw.
+  autoRecover: true,
+  // Space out requests during big batches so sites do not flag us.
+  autoThrottle: true,
+  // Restore unfinished work after a crash or restart.
+  restoreQueue: true,
   notifyOnComplete: true,
   clipboardWatch: false,
   autoUpdateTools: true

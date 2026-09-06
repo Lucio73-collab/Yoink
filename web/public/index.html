@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#202020">
+<title>Yoink</title>
+<style>
+/* Fluent-flavoured, hand written. No framework, no build step. */
+:root{
+  --app:#202020;--pane:#1c1c1c;--card:rgba(255,255,255,.052);--elev:#2c2c2c;
+  --fill:rgba(255,255,255,.06);--fill-h:rgba(255,255,255,.084);
+  --stroke:rgba(255,255,255,.07);--stroke2:rgba(255,255,255,.093);
+  --ink:#fff;--ink2:rgba(255,255,255,.786);--ink3:rgba(255,255,255,.544);--ink4:rgba(255,255,255,.363);
+  --accent:#6ccb5f;--accent-h:#7ad46e;--accent-t:#8fe08a;--danger:#ff99a4;
+  --ease:cubic-bezier(.1,.9,.2,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--app);color:var(--ink);
+  font-family:'Segoe UI Variable Text','Segoe UI',system-ui,-apple-system,sans-serif;
+  font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 96px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.logo{width:22px;height:22px;border-radius:5px;background:var(--accent);display:grid;place-items:center}
+h1{font-size:20px;line-height:28px;font-weight:600;margin:0;letter-spacing:-.02em}
+.sub{color:var(--ink3);font-size:12px;margin-left:auto}
+
+.card{background:var(--card);border:1px solid var(--stroke);border-radius:8px}
+input,select,button,textarea{font:inherit;color:inherit}
+textarea,input[type=password]{
+  width:100%;background:var(--fill);border:1px solid var(--stroke2);border-radius:4px;
+  padding:8px 12px;color:var(--ink);resize:none;transition:background .1s,border-color .1s;
+}
+textarea::placeholder{color:var(--ink3)}
+textarea:focus,input:focus{outline:none;background:var(--app);border-bottom:2px solid var(--accent)}
+select{
+  background:var(--fill);border:1px solid var(--stroke2);border-radius:4px;
+  height:32px;padding:0 28px 0 10px;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23c8c8c8' stroke-width='1.25'><path d='M2.5 4.5L6 8l3.5-3.5' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+button{
+  height:32px;padding:0 14px;border-radius:4px;border:1px solid var(--stroke2);
+  background:var(--fill);cursor:pointer;transition:background .1s,transform .06s;
+}
+button:hover{background:var(--fill-h)}
+button:active{transform:scale(.97)}
+button.accent{background:var(--accent);border-color:transparent;color:#101010;font-weight:600}
+button.accent:hover{background:var(--accent-h)}
+button.accent:disabled{background:var(--fill);color:var(--ink4);border-color:var(--stroke);cursor:default;transform:none}
+button.icon{width:30px;padding:0;display:grid;place-items:center;background:transparent;border-color:transparent;color:var(--ink2)}
+button.icon:hover{background:var(--fill-h);color:var(--ink)}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.row{display:flex;align-items:center;gap:12px;padding:12px}
+.thumb{width:0;flex:0 0 0}
+.meta{min-width:0;flex:1}
+.title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.small{font-size:12px;color:var(--ink3);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bar{height:2px;border-radius:1px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--accent);transform-origin:left;transition:transform .25s var(--ease)}
+.bar.indet i{width:40%;animation:indet 1.6s ease-in-out infinite}
+@keyframes indet{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+.tele{font-size:12px;color:var(--ink2);text-align:right;white-space:nowrap}
+.err{color:var(--danger);font-size:12px}
+.empty{text-align:center;padding:56px 16px;color:var(--ink3)}
+.enter{animation:enter .3s var(--ease) both}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}}
+#list>*{margin-bottom:8px}
+.gate{max-width:340px;margin:18vh auto;text-align:center}
+.hide{display:none!important}
+.tabs{display:flex;gap:4px;margin-bottom:12px}
+.tab{background:transparent;border-color:transparent;color:var(--ink2)}
+.tab.on{background:var(--fill);border-color:var(--stroke2);color:var(--ink)}
+.drop{border:1px dashed var(--stroke2);border-radius:8px;padding:24px;text-align:center}
+.drop.over{border-color:var(--accent);background:rgba(108,203,95,.06)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#101010" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M3 13.5h10"/></svg>
+    </span>
+    <h1>Yoink</h1>
+    <span class="sub" id="status">connecting…</span>
+  </header>
+
+  <div id="gate" class="gate hide">
+    <p style="color:var(--ink2)">This instance is protected.</p>
+    <input type="password" id="token" placeholder="Access token" autocomplete="current-password">
+    <button class="accent" style="margin-top:10px;width:100%" onclick="login()">Unlock</button>
+    <p id="gateErr" class="err"></p>
+  </div>
+
+  <main id="app" class="hide">
+    <div class="tabs">
+      <button id="tabRemote" class="tab on" onclick="setTab('remote')">Download</button>
+      <button id="tabLocal" class="tab" onclick="setTab('local')">Compress &amp; convert</button>
+    </div>
+
+    <section id="paneRemote">
+    <div class="card" style="padding:12px">
+      <textarea id="url" rows="2" spellcheck="false" placeholder="Paste a link. One per line for several."></textarea>
+      <div class="controls">
+        <select id="mode" onchange="syncMode()">
+          <option value="video">Video</option>
+          <option value="audio">Audio</option>
+        </select>
+        <select id="quality">
+          <option value="0">Best</option><option value="2160">4K</option>
+          <option value="1440">1440p</option><option value="1080" selected>1080p</option>
+          <option value="720">720p</option><option value="480">480p</option>
+        </select>
+        <select id="format" class="hide">
+          <option value="mp3">MP3</option><option value="m4a">M4A</option>
+          <option value="opus">Opus</option><option value="flac">FLAC</option>
+          <option value="original">Original</option>
+        </select>
+        <button class="accent" id="go" style="margin-left:auto" onclick="add()">Download</button>
+      </div>
+    </div>
+
+    <div id="list" style="margin-top:16px"></div>
+    <div id="empty" class="empty">Nothing queued yet.</div>
+    </section>
+
+    <section id="paneLocal" class="hide">
+      <div class="card" style="padding:12px">
+        <p style="margin:0 0 10px;color:var(--ink2);font-size:13px">
+          This runs entirely in your browser. Your file is never uploaded and the
+          server does no work.
+        </p>
+        <div id="drop" class="drop">
+          <input type="file" id="file" accept="video/*,audio/*" class="hide" onchange="pickFile(this.files[0])">
+          <button onclick="document.getElementById('file').click()">Choose a file</button>
+          <div style="margin-top:8px;color:var(--ink3);font-size:12px">or drop one here</div>
+        </div>
+
+        <div id="localOpts" class="hide">
+          <div class="small" style="margin:12px 0 4px"><b id="fileName" style="color:var(--ink)"></b></div>
+          <div class="small" id="fileMeta"></div>
+
+          <div class="controls">
+            <select id="lmode" onchange="syncLocal()">
+              <option value="compress">Compress to size</option>
+              <option value="convert">Convert format</option>
+            </select>
+            <select id="ltarget">
+              <option value="10">10 MB — Discord free</option>
+              <option value="25">25 MB — Nitro Basic</option>
+              <option value="50">50 MB</option>
+              <option value="100">100 MB — Nitro</option>
+            </select>
+            <select id="lformat" class="hide">
+              <option value="mp4">MP4</option><option value="webm">WebM</option>
+              <option value="gif">GIF</option><option value="mp3">MP3</option>
+              <option value="m4a">M4A</option><option value="wav">WAV</option>
+            </select>
+            <button class="accent" id="lgo" style="margin-left:auto" onclick="runLocal()">Start</button>
+          </div>
+
+          <div id="lstatus" class="small" style="margin-top:10px"></div>
+          <div id="lbar" class="bar hide"><i></i></div>
+          <div id="lout" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id)
+const jobs = new Map()
+
+const fmtBytes = (n) => {
+  if (n == null) return ''
+  const u = ['B','KB','MB','GB']; let i = 0, v = n
+  while (v >= 1024 && i < 3) { v /= 1024; i++ }
+  return `${v < 10 && i ? v.toFixed(1) : Math.round(v)} ${u[i]}`
+}
+const fmtTime = (s) => {
+  if (s == null) return ''
+  const m = Math.floor(s / 60), r = Math.round(s % 60)
+  return `${m}:${String(r).padStart(2,'0')}`
+}
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+
+function syncMode() {
+  const audio = $('mode').value === 'audio'
+  $('quality').classList.toggle('hide', audio)
+  $('format').classList.toggle('hide', !audio)
+}
+
+async function login() {
+  const token = $('token').value.trim()
+  const r = await fetch('/api/login', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ token })
+  })
+  if (r.ok) location.reload()
+  else $('gateErr').textContent = 'That token was not accepted.'
+}
+
+async function add() {
+  const url = $('url').value.trim()
+  if (!url) return
+  $('go').disabled = true
+  $('go').textContent = 'Adding…'
+  try {
+    const r = await fetch('/api/add', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        url,
+        mode: $('mode').value,
+        quality: $('quality').value,
+        format: $('format').value
+      })
+    })
+    if (r.ok) $('url').value = ''
+    else alert((await r.json()).error || 'Failed')
+  } finally {
+    $('go').disabled = false
+    $('go').textContent = 'Download'
+  }
+}
+
+$('url').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); add() }
+})
+
+const LABEL = {
+  queued:'Queued', running:'Downloading', processing:'Processing',
+  done:'Ready', error:'Failed', canceled:'Canceled'
+}
+
+function render() {
+  const list = [...jobs.values()].sort((a,b) => b.addedAt - a.addedAt)
+  $('empty').classList.toggle('hide', list.length > 0)
+
+  $('list').innerHTML = list.map((j) => {
+    const active = j.status === 'running' || j.status === 'processing'
+    const indet = j.status === 'processing' || (j.status === 'running' && !j.total)
+    const pct = Math.round((j.progress || 0) * 100)
+
+    let tele = ''
+    if (active) {
+      tele = `<div class="num">${pct}%</div>
+              <div class="num" style="color:var(--ink3)">${j.speed ? fmtBytes(j.speed)+'/s' : ''}</div>`
+    } else if (j.status === 'done') {
+      tele = `<a href="/api/file/${j.id}" download>
+                <button class="accent" style="height:28px">Save</button>
+              </a>
+              <div class="num" style="color:var(--ink3);margin-top:4px">${fmtBytes(j.size)}</div>`
+    }
+
+    return `<div class="card enter">
+      <div class="row">
+        <div class="meta">
+          <div class="title">${esc(j.title)}</div>
+          <div class="small">
+            <span style="color:${j.status==='error'?'var(--danger)':'var(--ink3)'}">${LABEL[j.status]||j.status}</span>
+            ${j.eta!=null&&active?`<span>•</span><span class="num">${fmtTime(j.eta)} left</span>`:''}
+          </div>
+          ${j.error?`<div class="err" style="margin-top:4px">${esc(j.error)}</div>`:''}
+          ${active?`<div class="bar ${indet?'indet':''}"><i style="${indet?'':`transform:scaleX(${j.progress||0});width:100%`}"></i></div>`:''}
+        </div>
+        <div class="tele">${tele}</div>
+        <button class="icon" title="${active||j.status==='queued'?'Cancel':'Remove'}"
+                onclick="act('${j.id}','${active||j.status==='queued'?'cancel':'remove'}')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>
+        </button>
+      </div>
+    </div>`
+  }).join('')
+}
+
+async function act(id, what) {
+  await fetch(`/api/${what}/${id}`, { method: 'POST' })
+}
+
+function connect() {
+  const es = new EventSource('/api/events')
+  es.onopen = () => { $('status').textContent = 'connected' }
+  es.onerror = () => { $('status').textContent = 'reconnecting…' }
+  es.onmessage = (e) => {
+    const j = JSON.parse(e.data)
+    if (j.removed) jobs.delete(j.id)
+    else jobs.set(j.id, j)
+    render()
+  }
+}
+
+/* ---------- local processing, entirely in the browser ---------- */
+
+let ff = null, ffLoaded = false, chosen = null, threaded = false
+
+function setTab(which) {
+  const remote = which === 'remote'
+  $('paneRemote').classList.toggle('hide', !remote)
+  $('paneLocal').classList.toggle('hide', remote)
+  $('tabRemote').classList.toggle('on', remote)
+  $('tabLocal').classList.toggle('on', !remote)
+}
+
+function syncLocal() {
+  const compress = $('lmode').value === 'compress'
+  $('ltarget').classList.toggle('hide', !compress)
+  $('lformat').classList.toggle('hide', compress)
+}
+
+function pickFile(f) {
+  if (!f) return
+  chosen = f
+  $('localOpts').classList.remove('hide')
+  $('fileName').textContent = f.name
+  $('fileMeta').textContent = fmtBytes(f.size)
+  $('lout').innerHTML = ''
+  syncLocal()
+}
+
+const dz = $('drop')
+;['dragenter','dragover'].forEach((e) => dz.addEventListener(e, (ev) => {
+  ev.preventDefault(); dz.classList.add('over')
+}))
+;['dragleave','drop'].forEach((e) => dz.addEventListener(e, (ev) => {
+  ev.preventDefault(); dz.classList.remove('over')
+}))
+dz.addEventListener('drop', (ev) => pickFile(ev.dataTransfer.files[0]))
+
+async function loadFF() {
+  if (ffLoaded) return
+  $('lstatus').textContent = 'Loading the encoder (about 32 MB, cached after this)…'
+  // Self-hosted rather than from a CDN: under COEP a cross-origin script is
+  // blocked unless it sends CORP, and the public CDNs do not.
+  await new Promise((ok, no) => {
+    const s = document.createElement('script')
+    s.src = '/vendor/ffmpeg.js'; s.onload = ok; s.onerror = no
+    document.head.appendChild(s)
+  })
+  ff = new FFmpegWASM.FFmpeg()
+  ff.on('progress', ({ progress }) => {
+    const pct = Math.max(0, Math.min(1, progress || 0))
+    $('lbar').classList.remove('hide')
+    $('lbar').querySelector('i').style.cssText = `transform:scaleX(${pct});width:100%`
+  })
+  await ff.load({
+    coreURL: '/vendor/ffmpeg-core.js',
+    wasmURL: '/vendor/ffmpeg-core.wasm',
+    ...(threaded ? { workerURL: '/vendor/ffmpeg-core.worker.js' } : {})
+  })
+  ffLoaded = true
+}
+
+/**
+ * Same reasoning as the desktop app: dividing size by duration gives
+ * technically correct bitrates that look terrible, so resolution comes down
+ * to spread the available bits over fewer pixels.
+ */
+function planCompress(durationSec, targetBytes, hasAudio) {
+  const budget = targetBytes * 0.94
+  const totalKbps = Math.floor((budget * 8) / durationSec / 1000)
+  if (totalKbps < 40) return null
+  const audioKbps = !hasAudio ? 0 : totalKbps < 200 ? 48 : totalKbps < 600 ? 96 : 128
+  const videoKbps = Math.max(24, totalKbps - audioKbps)
+  let height = null
+  if (videoKbps < 250) height = 360
+  else if (videoKbps < 600) height = 480
+  else if (videoKbps < 1500) height = 720
+  else if (videoKbps < 4000) height = 1080
+  return { videoKbps, audioKbps, height }
+}
+
+function probeDuration(file) {
+  return new Promise((resolve) => {
+    const v = document.createElement('video')
+    v.preload = 'metadata'
+    v.onloadedmetadata = () => { URL.revokeObjectURL(v.src); resolve(v.duration || 0) }
+    v.onerror = () => resolve(0)
+    v.src = URL.createObjectURL(file)
+  })
+}
+
+async function runLocal() {
+  if (!chosen) return
+  $('lgo').disabled = true
+  try {
+    await loadFF()
+    const name = 'in' + (chosen.name.match(/\.[^.]+$/)?.[0] || '.mp4')
+    $('lstatus').textContent = 'Reading file…'
+    await ff.writeFile(name, new Uint8Array(await chosen.arrayBuffer()))
+
+    let out, args
+    if ($('lmode').value === 'compress') {
+      const dur = await probeDuration(chosen)
+      if (!dur) throw new Error('Could not read the duration of that file.')
+      const target = Number($('ltarget').value) * 1024 * 1024
+      const plan = planCompress(dur, target, true)
+      if (!plan) throw new Error('That file is too long to fit in this size.')
+      out = 'out.mp4'
+      args = ['-i', name, '-c:v', 'libx264', '-b:v', `${plan.videoKbps}k`,
+              '-preset', 'veryfast']
+      if (plan.height) args.push('-vf', `scale=-2:${plan.height}`)
+      args.push('-c:a', 'aac', '-b:a', `${plan.audioKbps}k`, out)
+      $('lstatus').textContent =
+        `Encoding at ${plan.videoKbps}k${plan.height ? `, ${plan.height}p` : ''}…`
+    } else {
+      const f = $('lformat').value
+      out = `out.${f}`
+      if (f === 'gif') args = ['-i', name, '-vf', 'fps=15,scale=480:-1:flags=lanczos', out]
+      else if (['mp3','m4a','wav'].includes(f)) args = ['-i', name, '-vn', out]
+      else args = ['-i', name, out]
+      $('lstatus').textContent = 'Converting…'
+    }
+
+    await ff.exec(args)
+    const data = await ff.readFile(out)
+    const blob = new Blob([data.buffer], { type: 'application/octet-stream' })
+    const url = URL.createObjectURL(blob)
+    const base = chosen.name.replace(/\.[^.]+$/, '')
+    $('lstatus').textContent = `Done — ${fmtBytes(blob.size)}`
+    $('lout').innerHTML =
+      `<a href="${url}" download="${esc(base)}-yoink${out.slice(3)}">
+         <button class="accent">Save ${esc(out.slice(4).toUpperCase())}</button>
+       </a>`
+    await ff.deleteFile(name).catch(() => {})
+    await ff.deleteFile(out).catch(() => {})
+  } catch (e) {
+    $('lstatus').innerHTML = `<span class="err">${esc(e.message || e)}</span>`
+  } finally {
+    $('lgo').disabled = false
+  }
+}
+
+async function boot() {
+  const cfg = await (await fetch('/api/config')).json()
+  threaded = Boolean(cfg.threaded)
+  if (cfg.needsToken && !cfg.authed) {
+    $('gate').classList.remove('hide')
+    return
+  }
+  $('app').classList.remove('hide')
+  const list = await (await fetch('/api/jobs')).json()
+  list.forEach((j) => jobs.set(j.id, j))
+  render()
+  connect()
+  syncMode()
+}
+boot()
+</script>
+</body>
+</html>

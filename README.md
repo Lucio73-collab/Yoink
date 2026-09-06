@@ -4,7 +4,7 @@ A fast, good-looking downloader for Windows. Paste a link, get the highest quali
 
 Built on yt-dlp, so it reaches roughly 1800 sites: YouTube, TikTok, Instagram, X, Reddit, Twitch, SoundCloud, Bandcamp, Vimeo, Dailymotion, Bilibili and a long tail of everything else. Spotify links work through metadata matching (see below).
 
-Neutral greyscale, one green accent, dense single-window layout.
+Built to Microsoft's Fluent 2 / WinUI 3 design language, so it looks like it belongs on Windows rather than like a web page in a window.
 
 ---
 
@@ -135,6 +135,20 @@ Spotify requires an exact redirect URI, so port 8888 cannot float. Yoink tracks 
 
 ---
 
+## Compress and convert
+
+Drop any video or audio file onto the window.
+
+**Compress to a target size** does a two-pass x264 encode aimed at 10, 25, 50, 100 or 500 MB, labelled by which Discord tier each one matches.
+
+The step most size-targeting tools skip: dividing size by duration produces technically correct bitrates that look terrible, because 1080p at 400 kbps is a smear. Yoink drops resolution so the available bits cover fewer pixels, and trims frame rate on long low-bitrate jobs. You see the plan before committing, and a target that genuinely cannot fit fails with an explanation instead of producing sludge.
+
+**Convert** handles MP4, MKV, WebM, GIF, MP3, M4A, Opus, FLAC and WAV. MKV stream-copies, so it is instant and lossless. GIF uses two-stage palette generation, since a single-pass GIF falls back to a generic palette and looks visibly muddy.
+
+Both run through the same queue as downloads, with the same progress, cancel and retry.
+
+---
+
 ## Not supported
 
 DRM-protected streaming: Netflix, Disney+, Prime Video, Apple Music, Spotify audio itself. Those streams are encrypted, and stripping that protection is a different category of thing from downloading a public URL. Not a technical limitation, a deliberate boundary.
@@ -164,7 +178,8 @@ DRM-protected streaming: Netflix, Disney+, Prime Video, Apple Music, Spotify aud
 | `Ctrl` `L` | Focus the link input |
 | `Enter` | Queue everything in the input |
 | `Shift` `Enter` | New line |
-| `Esc` | Close settings |
+| `Esc` | Close settings or the drop panel |
+| Drag a file in | Compress or convert it |
 
 ---
 
@@ -181,7 +196,7 @@ src/
 │   ├── updater.js    app auto-update, disabled for portable builds
 │   └── settings.js   persisted config
 ├── preload/          contextBridge, no node in the renderer
-└── renderer/         React 19, Tailwind 4, motion, zustand
+└── renderer/         React 19, Tailwind 4, zustand
 ```
 
 Implementation notes worth knowing if you extend it:
@@ -191,6 +206,55 @@ Implementation notes worth knowing if you extend it:
 - yt-dlp runs with `--verbose` so postprocessor failures carry real FFmpeg output. Log lines are buffered and flushed every 250ms, because emitting each line as its own IPC message re-renders the UI hundreds of times per download.
 - The clipboard watcher coerces and try/catches every read. `clipboard.readText()` is documented as returning a string but can hand back `undefined` on Windows when the clipboard holds image data or another process holds a lock, and an unguarded `.trim()` there takes down the whole main process.
 - Auto-update is skipped for portable builds. They run from a temp extraction that is discarded on exit, so swapping files next to the executable is impossible.
+
+---
+
+## Design
+
+The interface follows Fluent 2 / WinUI 3 rather than approximating it, because the gap between "looks like Windows" and "looks like it is imitating Windows" lives entirely in the exact values.
+
+- **Segoe UI Variable**, which ships with Windows and carries separate optical sizes for captions, body text and headings. No downloaded display fonts.
+- **4px corner radius on controls, 8px on cards and dialogs.** Rounder than that reads as a web app immediately.
+- **Controls are white at low alpha over the background**, not solid greys. That layering is what makes Windows 11 surfaces feel native.
+- **Real Rest, Hover and Pressed states** on every interactive element. A control that only responds to hover feels unfinished the moment it is clicked.
+- **4px spacing grid** and the Fluent type ramp (12 / 14 / 16 / 20 / 28). No ad-hoc sizes.
+- **Fluent NavigationView selection indicator**: a short vertical pill on the leading edge.
+- **InfoBars** rather than custom toasts, matching how Windows surfaces status.
+
+Using the system font instead of a downloaded display font removed five dependencies and cut the renderer bundle by a third.
+
+### Motion
+
+All of it is Fluent's own motion system, written natively. No animation library, no downloaded asset packs, nothing with a licence to track.
+
+- **Reveal highlight** — a light follows the cursor across cards, buttons and nav items, brightening the nearest border. The most recognisable Fluent effect, and it costs two CSS custom properties updated on pointer move.
+- **Acrylic** — dialogs blur and tint what is behind them rather than dimming it.
+- **FLIP list transitions** — filtering the queue makes rows glide to their new positions instead of teleporting. About twenty lines using the Web Animations API; the library that does this weighs 350 kB.
+- **ProgressRing** — the WinUI indeterminate spinner, an arc whose length grows and shrinks as it rotates.
+- **Eased numbers** — download speed jumps around on every sample, so the readout glides toward each value. A snapping counter is genuinely harder to read.
+- **Live pulse** — rows that are actually transferring breathe a faint accent border, so a busy queue is readable at a glance.
+- **Staggered entrance**, capped so long lists do not crawl in.
+
+Every one of these is skipped under `prefers-reduced-motion`, in both CSS and JavaScript.
+
+**Performance rules the motion follows**, because a downloader is opened many times a day and lag is worse than no animation at all:
+
+- **Eased numbers write to the DOM through a ref, never through state.** The obvious implementation calls setState every frame; with two readouts per row and twenty active downloads that is 2,400 React renders per second. Direct writes animate the same pixels at zero render cost.
+- **Reveal is delegated to one document listener.** One per card meant a 300 item queue carried 300 listeners.
+- **Only `transform` and `opacity` are animated.** The active-row pulse originally faded `border-color`, which repaints every frame; it now fades a pre-rendered ring's opacity and runs entirely on the GPU.
+- **Pointer coordinates are throttled to one write per frame.**
+
+---
+
+## Web version
+
+`web/` holds a small self-hosted web front end: one dependency-free Node file plus a single HTML page, about 24 KB of source total. Paste a link from your phone, download the file when it is ready.
+
+It is meant for hardware you own, reachable over Tailscale or your own reverse proxy. A public instance would get its IP flagged by YouTube quickly and could not fall back on browser cookies, which is why public downloader sites break constantly.
+
+Compression and format conversion run **entirely in the visitor's browser** via ffmpeg.wasm: nothing is uploaded and the server does no work. Downloading stays server-side because browsers forbid fetching from media hosts that do not send CORS headers, which is a security boundary rather than a limitation.
+
+See `web/README.md`.
 
 ---
 

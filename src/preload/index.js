@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args)
 
@@ -42,6 +42,17 @@ contextBridge.exposeInMainWorld('yoink', {
     match: (tracks) => invoke('spotify:match', tracks),
     onMatchProgress: (fn) => on('spotify:matchProgress', fn)
   },
+  media: {
+    probe: (files) => invoke('media:probe', files),
+    presets: () => invoke('media:presets'),
+    plan: (file, targetBytes) => invoke('media:plan', file, targetBytes)
+  },
+  // File.path was removed in Electron 32. webUtils.getPathForFile is the
+  // supported way to turn a dropped File into a real filesystem path.
+  pathForFile: (file) => {
+    try { return webUtils.getPathForFile(file) } catch { return null }
+  },
+  pickMedia: () => invoke('pick:media'),
   pickFolder: (current) => invoke('pick:folder', current),
   pickFile: (filters) => invoke('pick:file', filters),
   reveal: (target) => invoke('open:path', target),

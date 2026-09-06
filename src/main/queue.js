@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto'
+import fsp from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import { buildArgs, run } from './ytdlp.js'
+import * as media from './media.js'
+import { nextStrategy, explain, throttleArgs } from './recovery.js'
 
 /**
  * A small in-memory queue. Jobs are plain objects that get broadcast to the
@@ -25,6 +28,7 @@ function snapshot(job) {
 function push(job) {
   jobs.set(job.id, job)
   emit(snapshot(job))
+  schedulePersist()
 }
 
 function patch(id, changes) {
@@ -32,6 +36,7 @@ function patch(id, changes) {
   if (!job) return
   Object.assign(job, changes)
   emit(snapshot(job))
+  schedulePersist()
 }
 
 export function list() {
@@ -67,6 +72,24 @@ export function add(entry) {
     groupTitle: entry.groupTitle || null,
     groupIndex: entry.groupIndex ?? null,
     groupSize: entry.groupSize ?? null,
+    // Local media jobs (compress / convert) share this queue so they get the
+    // same progress, cancel and retry behaviour as downloads.
+    kind: entry.kind || 'download',
+    file: entry.file || null,
+    targetBytes: entry.targetBytes ?? null,
+    targetLabel: entry.targetLabel || null,
+    format: entry.format || null,
+    crf: entry.crf ?? null,
+    preset: entry.preset || null,
+    gifFps: entry.gifFps ?? null,
+    gifWidth: entry.gifWidth ?? null,
+    audioBitrate: entry.audioBitrate ?? null,
+    resultSize: null,
+    plan: null,
+    // Auto-recovery bookkeeping
+    extraArgs: entry.extraArgs || null,
+    tried: [],
+    recovery: null,
 
     status: 'queued', // queued | running | processing | done | error | canceled
     progress: 0,
@@ -89,9 +112,18 @@ async function start(job) {
   const settings = await getSettings()
   patch(job.id, { status: 'running', progress: 0, error: null })
 
+  if (job.kind === 'compress' || job.kind === 'convert') {
+    await startLocal(job, settings)
+    return
+  }
+
   let built
   try {
-    built = await buildArgs(job, settings)
+    // Spacing requests out preemptively is cheaper than being rate limited
+    // halfway through a big batch and having to recover from it.
+    const queuedNow = [...jobs.values()].filter((j) => j.status === 'queued').length
+    const throttle = settings.autoThrottle === false ? [] : throttleArgs(queuedNow)
+    built = await buildArgs({ ...job, extraArgs: [...(job.extraArgs || []), ...throttle] }, settings)
   } catch (err) {
     patch(job.id, { status: 'error', error: String(err.message || err) })
     pump()
@@ -165,10 +197,99 @@ async function start(job) {
       finishedAt: Date.now()
     })
   } else {
-    const tail = cur.log.filter((l) => /error|unable|unsupported|forbidden/i.test(l)).slice(-3)
+    const tail = cur.log.filter((l) => /error|unable|unsupported|forbidden|warning/i.test(l)).slice(-6).join(' | ')
+    const raw = result.error || tail || `yt-dlp exited with code ${result.code}`
+
+    // Try the known fix for this failure before bothering the user with it.
+    const settings2 = await getSettings()
+    const strategy = settings2.autoRecover === false ? null : nextStrategy(raw, cur.tried)
+
+    if (strategy) {
+      patch(job.id, {
+        status: 'queued',
+        progress: 0,
+        speed: null,
+        eta: null,
+        tried: [...cur.tried, strategy.id],
+        extraArgs: [...(cur.extraArgs || []), ...strategy.args(settings2)],
+        recovery: { title: strategy.title, action: strategy.action },
+        error: null
+      })
+    } else {
+      patch(job.id, {
+        status: 'error',
+        error: explain(raw),
+        rawError: raw,
+        finishedAt: Date.now()
+      })
+    }
+  }
+
+  pump()
+}
+
+/** Runs a local ffmpeg job: compress to a target size, or convert format. */
+async function startLocal(job, settings) {
+  let logBuffer = []
+  let logTimer = null
+  const flushLog = () => {
+    logTimer = null
+    if (!logBuffer.length) return
+    const cur = jobs.get(job.id)
+    if (!cur) return
+    const lines = logBuffer
+    logBuffer = []
+    patch(job.id, { log: [...cur.log, ...lines].slice(-400) })
+  }
+
+  const handlers = {
+    onProgress: (frac) => patch(job.id, { progress: Math.min(1, frac) }),
+    onPlan: (plan) => patch(job.id, { plan }),
+    onFile: (file) => patch(job.id, { file: job.file, outputFile: file }),
+    onChild: (child) => running.set(job.id, child),
+    onLog: (line) => {
+      logBuffer.push(line)
+      if (!logTimer) logTimer = setTimeout(flushLog, 250)
+    }
+  }
+
+  let result
+  try {
+    const target = { ...job, outputDir: job.outputDir || settings.downloadDir }
+    result = job.kind === 'compress'
+      ? await media.compress(target, handlers)
+      : await media.convert(target, handlers)
+  } catch (err) {
+    result = { code: -1, error: String(err.message || err) }
+  }
+
+  running.delete(job.id)
+  clearTimeout(logTimer)
+  flushLog()
+
+  const cur = jobs.get(job.id)
+  if (!cur) return
+  if (cur.status === 'canceled') {
+    pump()
+    return
+  }
+
+  if (result.code === 0) {
+    patch(job.id, {
+      status: 'done',
+      progress: 1,
+      file: result.file,
+      resultSize: result.size,
+      total: result.size,
+      finishedAt: Date.now(),
+      // Overshooting a size target is a failure the user needs to see, even
+      // though ffmpeg exited cleanly.
+      error: result.overTarget ? 'Result is slightly over the target size' : null
+    })
+  } else {
     patch(job.id, {
       status: 'error',
-      error: result.error || tail.join(' | ') || `yt-dlp exited with code ${result.code}`,
+      error: result.error || 'ffmpeg failed',
       finishedAt: Date.now()
     })
   }
@@ -249,6 +370,50 @@ export function clearFinished() {
 
 export function cancelAll() {
   for (const id of jobs.keys()) cancel(id)
+}
+
+/* ---------- persistence ---------- */
+
+let persistPath = null
+let saveTimer = null
+
+/**
+ * Unfinished work survives a restart. Only pending jobs are kept: completed
+ * ones are history, and half-finished ffmpeg output cannot be resumed anyway.
+ */
+export function enablePersistence(file) {
+  persistPath = file
+}
+
+function schedulePersist() {
+  if (!persistPath || saveTimer) return
+  saveTimer = setTimeout(async () => {
+    saveTimer = null
+    try {
+      const pending = [...jobs.values()]
+        .filter((j) => ['queued', 'running', 'processing'].includes(j.status))
+        .map((j) => ({ ...snapshot(j), status: 'queued', progress: 0, log: [], speed: null, eta: null }))
+      await fsp.writeFile(persistPath, JSON.stringify(pending), 'utf8')
+    } catch {
+      /* never let a failed save break downloading */
+    }
+  }, 1500)
+}
+
+export async function restore() {
+  if (!persistPath) return 0
+  try {
+    const saved = JSON.parse(await fsp.readFile(persistPath, 'utf8'))
+    if (!Array.isArray(saved) || !saved.length) return 0
+    for (const job of saved) {
+      const { id, addedAt, finishedAt, ...rest } = job
+      add(rest)
+    }
+    await fsp.rm(persistPath, { force: true })
+    return saved.length
+  } catch {
+    return 0
+  }
 }
 
 export function stats() {

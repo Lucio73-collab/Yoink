@@ -1,0 +1,30 @@
+# Add to your existing Caddyfile on nespi.
+#
+# Downloads can be large and slow, so the usual proxy timeouts need raising,
+# and buffering has to stay off or the progress stream will not arrive.
+
+yoink.nes-mail.com {
+    reverse_proxy 127.0.0.1:8080 {
+        flush_interval -1          # required: streams SSE progress unbuffered
+        transport http {
+            response_header_timeout 5m
+            read_timeout 30m
+        }
+    }
+
+    request_body {
+        max_size 1MB
+    }
+
+    encode zstd gzip
+}
+
+# Tailscale-only alternative, if you would rather it never touch the public
+# internet. Nothing outside your tailnet can reach it.
+#
+# yoink.nespi.ts.net {
+#     bind 100.83.40.124
+#     reverse_proxy 127.0.0.1:8080 {
+#         flush_interval -1
+#     }
+# }

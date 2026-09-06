@@ -2,10 +2,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import { rate } from '../lib/format.js'
 
 /**
- * A rolling graph of aggregate download speed, sampled on a fixed interval so
- * the line advances at a constant rate regardless of how often yt-dlp reports
- * progress. This is the one piece of the UI that exists purely to make the app
- * feel alive rather than to convey something a number could not.
+ * Throughput over the last 24 seconds. Styled after the graphs in Task
+ * Manager and Resource Monitor: a faint grid, a thin accent line, a flat
+ * subdued fill. Restrained rather than decorative.
  */
 
 const POINTS = 48
@@ -13,104 +12,76 @@ const SAMPLE_MS = 500
 
 export default function Throughput({ speed, active }) {
   const [history, setHistory] = useState(() => new Array(POINTS).fill(0))
-  const speedRef = useRef(speed)
-  speedRef.current = speed
+  const ref = useRef(speed)
+  ref.current = speed
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setHistory((h) => [...h.slice(1), speedRef.current || 0])
-    }, SAMPLE_MS)
+    const id = setInterval(() => setHistory((h) => [...h.slice(1), ref.current || 0]), SAMPLE_MS)
     return () => clearInterval(id)
   }, [])
 
   const peak = Math.max(...history, 1)
-  const w = 200
-  const h = 44
+  const w = 216
+  const h = 52
 
-  // Catmull-Rom style smoothing keeps the line organic without a chart library.
   const pts = history.map((v, i) => [
     (i / (POINTS - 1)) * w,
-    h - (v / peak) * (h - 4) - 2
+    h - (v / peak) * (h - 6) - 3
   ])
 
   let line = ''
   pts.forEach(([x, y], i) => {
-    if (i === 0) {
-      line += `M ${x} ${y}`
-      return
-    }
+    if (i === 0) return (line += `M ${x} ${y}`)
     const [px, py] = pts[i - 1]
     const cx = (px + x) / 2
     line += ` C ${cx} ${py}, ${cx} ${y}, ${x} ${y}`
   })
 
-  const area = `${line} L ${w} ${h} L 0 ${h} Z`
   const idle = !active && history.every((v) => v === 0)
 
   return (
-    <div className="px-3">
-      <div className="mb-2 flex items-baseline justify-between">
-        <span className="label">Throughput</span>
-        <span
-          className={`tabular text-[11px] ${active ? 'text-green' : 'text-dim'}`}
-        >
-          {active ? rate(speed) : 'idle'}
+    <div className="px-2">
+      <div className="mb-1.5 flex items-baseline justify-between px-0.5">
+        <span className="t-caption text-[var(--color-ink-3)]">Throughput</span>
+        <span className={`num t-caption ${active ? 'text-[var(--color-accent-text)]' : 'text-[var(--color-ink-3)]'}`}>
+          {active ? rate(speed) : '0 B/s'}
         </span>
       </div>
 
-      <svg
-        viewBox={`0 0 ${w} ${h}`}
-        preserveAspectRatio="none"
-        className="h-11 w-full overflow-visible"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="tp-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-green)" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="var(--color-green)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
+      <div className="overflow-hidden rounded-[4px] border border-[var(--color-stroke)] bg-[var(--color-card-2)]">
+        <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none"
+             className="h-[52px] w-full" aria-hidden="true">
+          <defs>
+            <linearGradient id="tp" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.20" />
+              <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
 
-        {/* Baseline so the panel does not look broken when idle */}
-        <line
-          x1="0"
-          y1={h - 2}
-          x2={w}
-          y2={h - 2}
-          stroke="var(--color-surface1)"
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
+          {/* Grid, as in Task Manager */}
+          {[0.25, 0.5, 0.75].map((f) => (
+            <line key={f} x1="0" y1={h * f} x2={w} y2={h * f}
+                  stroke="rgba(255,255,255,0.06)" strokeWidth="1"
+                  vectorEffect="non-scaling-stroke" />
+          ))}
 
-        {!idle && (
-          <>
-            <path d={area} fill="url(#tp-fill)" />
-            <path
-              d={line}
-              fill="none"
-              stroke={active ? 'var(--color-green)' : 'var(--color-dim)'}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-              style={{ transition: 'stroke 300ms var(--ease-out)' }}
-            />
-            {active && (
-              <circle
-                cx={pts.at(-1)[0]}
-                cy={pts.at(-1)[1]}
-                r="2.5"
-                fill="var(--color-green)"
-                vectorEffect="non-scaling-stroke"
-              />
-            )}
-          </>
-        )}
-      </svg>
+          {!idle && (
+            <>
+              <path d={`${line} L ${w} ${h} L 0 ${h} Z`} fill="url(#tp)" />
+              <path d={line} fill="none" strokeWidth="1.5" className="draw"
+                    stroke={active ? 'var(--color-accent)' : 'var(--color-ink-4)'}
+                    strokeLinecap="round" strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke" />
+            </>
+          )}
+        </svg>
+      </div>
 
-      <div className="tabular mt-1 flex justify-between text-[10px] text-dim">
-        <span>24s</span>
-        <span>peak {peak > 1 ? rate(peak) : '--'}</span>
+      <div className="mt-1 flex justify-between px-0.5">
+        <span className="t-caption text-[var(--color-ink-4)]">24s</span>
+        <span className="num t-caption text-[var(--color-ink-4)]">
+          {peak > 1 ? `peak ${rate(peak)}` : ''}
+        </span>
       </div>
     </div>
   )

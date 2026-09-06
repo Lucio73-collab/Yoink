@@ -1,0 +1,5 @@
+downloads/
+# ffmpeg.wasm is fetched at build time by the Dockerfile, or by fetch-vendor.sh
+# for local development. The core wasm is ~32 MB and does not belong in git.
+public/vendor/
+.env

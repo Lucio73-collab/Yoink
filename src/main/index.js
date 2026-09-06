@@ -9,6 +9,7 @@ import * as binaries from './binaries.js'
 import * as queue from './queue.js'
 import * as spotify from './spotify.js'
 import * as updater from './updater.js'
+import * as media from './media.js'
 import { probe } from './ytdlp.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -45,9 +46,9 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     show: false,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#202020',
     titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#0a0a0a', symbolColor: '#949494', height: 52 },
+    titleBarOverlay: { color: '#202020', symbolColor: '#ffffff', height: 48 },
     webPreferences: {
       preload: preloadPath(),
       sandbox: false,
@@ -195,8 +196,18 @@ app.whenReady().then(async () => {
     settings: () => settingsStore.load()
   })
 
+  queue.enablePersistence(path.join(app.getPath('userData'), 'queue.json'))
+
   createWindow()
   setClipboardWatch(settings.clipboardWatch)
+
+  if (settings.restoreQueue) {
+    // Wait for the renderer so restored jobs actually appear in the list.
+    win?.webContents.once('did-finish-load', async () => {
+      const n = await queue.restore()
+      if (n) send('queue:toast', { message: `Restored ${n} unfinished download${n === 1 ? '' : 's'}`, tone: 'info' })
+    })
+  }
   updater.init((status) => send('update:status', status))
 
   // Quiet background refresh of yt-dlp. Delayed so it never competes with
@@ -326,6 +337,19 @@ handle('spotify:match', async (tracks) => {
   return out
 })
 
+// Local media
+handle('media:probe', (files) =>
+  Promise.all((Array.isArray(files) ? files : [files]).map((f) => media.probeFile(f)))
+)
+handle('media:presets', () => ({
+  sizes: media.SIZE_PRESETS,
+  formats: media.CONVERT_FORMATS
+}))
+handle('media:plan', async (file, targetBytes) => {
+  const info = await media.probeFile(file)
+  return media.planCompress(info, targetBytes)
+})
+
 // Shell helpers
 handle('pick:folder', async (current) => {
   const res = await dialog.showOpenDialog(win, {
@@ -337,6 +361,15 @@ handle('pick:folder', async (current) => {
 handle('pick:file', async (filters) => {
   const res = await dialog.showOpenDialog(win, { properties: ['openFile'], filters })
   return res.canceled ? null : res.filePaths[0]
+})
+handle('pick:media', async () => {
+  const res = await dialog.showOpenDialog(win, {
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: 'Media', extensions: ['mp4','mkv','webm','mov','avi','flv','m4v','ts','mp3','m4a','opus','flac','wav','ogg','aac'] }
+    ]
+  })
+  return res.canceled ? [] : res.filePaths
 })
 handle('open:path', async (target) => {
   try {

@@ -1,153 +1,145 @@
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import {
-  ArrowClockwise,
-  FolderOpen,
-  X,
-  Trash,
-  CaretRight,
-  MusicNote,
-  FilmSlate
-} from '@phosphor-icons/react'
+import { ProgressBar, Button, ProgressRing } from './ui/Fluent.jsx'
+import { useReveal, useSmoothText, stagger } from '../lib/motion.js'
 import { bytes, rate, eta, duration, siteOf } from '../lib/format.js'
 
 const STATE = {
-  queued:     { label: 'Queued',      dot: 'bg-dim' },
-  running:    { label: 'Downloading', dot: 'bg-green pulse' },
-  processing: { label: 'Processing',  dot: 'bg-green pulse' },
-  done:       { label: 'Done',        dot: 'bg-green' },
-  error:      { label: 'Failed',      dot: 'bg-red' },
-  canceled:   { label: 'Canceled',    dot: 'bg-dim' }
+  queued:     { label: 'Queued' },
+  running:    { label: 'Downloading' },
+  processing: { label: 'Processing' },
+  done:       { label: 'Completed' },
+  error:      { label: 'Failed' },
+  canceled:   { label: 'Canceled' }
 }
 
-function Action({ Icon, onClick, label, danger }) {
+function Glyph({ d, className }) {
   return (
-    <button
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      className={`grid h-7 w-7 place-items-center rounded-md transition-colors duration-150
-                  ${danger ? 'text-muted hover:bg-surface1 hover:text-red'
-                           : 'text-muted hover:bg-surface1 hover:text-text'}`}
-    >
-      <Icon size={14} />
-    </button>
+    <svg viewBox="0 0 16 16" className={className || 'h-4 w-4'} fill="none"
+         stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
   )
 }
 
-export default function JobRow({ job, onCancel, onRetry, onRemove, onReveal }) {
+const G = {
+  folder: 'M2 4.5A1.5 1.5 0 013.5 3h2.2l1.3 1.5h5.5A1.5 1.5 0 0114 6v5.5A1.5 1.5 0 0112.5 13h-9A1.5 1.5 0 012 11.5z',
+  retry: 'M13 8a5 5 0 11-1.6-3.7M13 2v3h-3',
+  close: 'M3.5 3.5l9 9M12.5 3.5l-9 9',
+  trash: 'M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.2a1 1 0 001 .8h3.8a1 1 0 001-.8l.6-8.2',
+  chev: 'M6 3.5L10.5 8 6 12.5',
+  media: 'M2.5 4h11v8h-11zM6.5 6.5l3.5 1.5-3.5 1.5z'
+}
+
+export default function JobRow({ job, onCancel, onRetry, onRemove, onReveal, index = 0 }) {
   const [open, setOpen] = useState(false)
+  useReveal()
+  // Speed jumps around on every sample; easing it makes the readout legible.
+  // These write to the DOM directly, so easing costs no React renders.
+  const speedRef = useSmoothText(job.speed || 0, rate)
+  const pctRef = useSmoothText((job.progress || 0) * 100, (v) => `${Math.round(v)}%`)
   const state = STATE[job.status] || STATE.queued
   const active = job.status === 'running' || job.status === 'processing'
   const indeterminate = job.status === 'processing' || (job.status === 'running' && !job.total)
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.14 } }}
-      transition={{ type: 'spring', stiffness: 460, damping: 38 }}
-      className="job-row group mx-3 mb-0.5 bg-mantle/40 transition-colors duration-150 hover:bg-mantle"
-      data-state={job.status}
-      style={{ '--fill': job.progress || 0 }}
+    <div
+      data-flip-key={job.id}
+      style={{ animationDelay: stagger(index) }}
+      className={`card reveal reveal-border enter mb-1.5 overflow-hidden
+                  transition-colors duration-150 ${active ? 'alive' : ''}`}
     >
-      <div className={`flex items-center gap-3 px-3 py-2.5 ${indeterminate ? 'sweep' : ''}`}>
-        <div className="relative h-[40px] w-[68px] shrink-0 overflow-hidden rounded-md bg-surface0">
+      <div className="flex items-center gap-3 px-3 py-2.5">
+        <div className="grid h-[40px] w-[68px] shrink-0 place-items-center overflow-hidden rounded-[4px] bg-[var(--color-fill-press)]">
           {job.thumbnail ? (
-            <img
-              src={job.thumbnail}
-              alt=""
-              loading="lazy"
-              className="h-full w-full object-cover"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
+            <img src={job.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover"
+                 onError={(e) => (e.currentTarget.style.display = 'none')} />
           ) : (
-            <div className="grid h-full w-full place-items-center text-dim">
-              {job.mode === 'audio' ? <MusicNote size={15} /> : <FilmSlate size={15} />}
-            </div>
+            <Glyph d={G.media} className="h-4 w-4 text-[var(--color-ink-4)]" />
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[13.5px] font-medium text-text" title={job.title}>
+          <div className="t-body truncate text-[var(--color-ink)]" title={job.title}>
             {job.title}
           </div>
-          <div className="mt-[3px] flex items-center gap-2 text-[11.5px] text-muted">
-            <span className={`h-[5px] w-[5px] shrink-0 rounded-full ${state.dot}`} />
-            <span className={job.status === 'error' ? 'text-red' : ''}>{state.label}</span>
-            <span className="text-surface2">·</span>
+          <div className="t-caption mt-0.5 flex items-center gap-1.5 text-[var(--color-ink-3)]">
+            {job.status === 'processing' && (
+              <ProgressRing size={11} className="text-[var(--color-accent-text)]" />
+            )}
+            <span className={job.status === 'error' ? 'text-[var(--color-danger)]' : ''}>
+              {job.recovery && job.status === 'queued' ? job.recovery.action : state.label}
+            </span>
+            <span aria-hidden>•</span>
             <span className="truncate">{job.sourceLabel || siteOf(job.url)}</span>
             {job.duration ? (
               <>
-                <span className="text-surface2">·</span>
-                <span className="tabular">{duration(job.duration)}</span>
+                <span aria-hidden>•</span>
+                <span className="num">{duration(job.duration)}</span>
               </>
             ) : null}
           </div>
+
+          {active && (
+            <ProgressBar value={indeterminate ? null : job.progress} live className="mt-2" />
+          )}
         </div>
 
-        {/* Telemetry column, fixed widths so rows never jitter as numbers change */}
-        <div className="tabular hidden shrink-0 items-baseline gap-4 text-[11.5px] sm:flex">
+        <div className="num t-caption hidden shrink-0 items-baseline gap-4 text-right sm:flex">
           {active ? (
             <>
-              <span className="w-[74px] text-right text-soft">{rate(job.speed)}</span>
-              <span className="w-[46px] text-right text-muted">{eta(job.eta)}</span>
-              <span className="w-[40px] text-right text-[13px] font-medium text-green">
-                {Math.round((job.progress || 0) * 100)}%
-              </span>
+              <span ref={speedRef} className="w-[72px] text-[var(--color-ink-2)]" />
+              <span className="w-[44px] text-[var(--color-ink-3)]">{eta(job.eta)}</span>
+              <span ref={pctRef} className="w-[38px] text-[var(--color-ink)]" />
             </>
           ) : job.status === 'done' ? (
-            <span className="text-dim">{job.total ? bytes(job.total) : ''}</span>
+            <span className="text-[var(--color-ink-3)]">{job.total ? bytes(job.total) : ''}</span>
           ) : job.status === 'error' ? (
-            <span className="max-w-[220px] truncate text-red/70" title={job.error}>
+            <span className="max-w-[240px] truncate text-left text-[var(--color-danger)]" title={job.error}>
               {job.error}
             </span>
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover:opacity-100">
+        <div className="flex shrink-0 items-center gap-0.5">
           {job.log?.length > 0 && (
-            <button
-              onClick={() => setOpen((v) => !v)}
-              title="Log"
-              aria-label="Toggle log"
-              className="grid h-7 w-7 place-items-center rounded-md text-muted transition-colors duration-150 hover:bg-surface1 hover:text-text"
-            >
-              <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.16 }}>
-                <CaretRight size={14} />
-              </motion.span>
-            </button>
+            <Button appearance="subtle" size="sm" onClick={() => setOpen((v) => !v)}
+                    aria-label="Details" title="Details" className="w-[28px] px-0">
+              <Glyph d={G.chev}
+                     className={`h-3.5 w-3.5 transition-transform duration-150 ${open ? 'rotate-90' : ''}`} />
+            </Button>
           )}
           {job.status === 'done' && job.file && (
-            <Action Icon={FolderOpen} onClick={() => onReveal(job.file)} label="Show in folder" />
+            <Button appearance="subtle" size="sm" onClick={() => onReveal(job.file)}
+                    aria-label="Show in folder" title="Show in folder" className="w-[28px] px-0">
+              <Glyph d={G.folder} className="h-3.5 w-3.5" />
+            </Button>
           )}
           {(job.status === 'error' || job.status === 'canceled') && (
-            <Action Icon={ArrowClockwise} onClick={() => onRetry(job.id)} label="Retry" />
+            <Button appearance="subtle" size="sm" onClick={() => onRetry(job.id)}
+                    aria-label="Retry" title="Retry" className="spin-once w-[28px] px-0">
+              <Glyph d={G.retry} className="h-3.5 w-3.5" />
+            </Button>
           )}
           {active || job.status === 'queued' ? (
-            <Action Icon={X} onClick={() => onCancel(job.id)} label="Cancel" danger />
+            <Button appearance="subtle" size="sm" onClick={() => onCancel(job.id)}
+                    aria-label="Cancel" title="Cancel" className="w-[28px] px-0">
+              <Glyph d={G.close} className="h-3.5 w-3.5" />
+            </Button>
           ) : (
-            <Action Icon={Trash} onClick={() => onRemove(job.id)} label="Remove" danger />
+            <Button appearance="subtle" size="sm" onClick={() => onRemove(job.id)}
+                    aria-label="Remove" title="Remove" className="w-[28px] px-0">
+              <Glyph d={G.trash} className="h-3.5 w-3.5" />
+            </Button>
           )}
         </div>
       </div>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-            className="overflow-hidden"
-          >
-            <pre className="tabular mx-3 mb-3 max-h-52 overflow-auto rounded-md bg-void px-3 py-2.5 text-[11px] leading-relaxed text-muted">
-              {job.log.slice(-120).join('\n')}
-            </pre>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      {open && (
+        <pre className="enter max-h-52 overflow-auto border-t border-[var(--color-divider)] bg-[var(--color-app)]
+                        px-3 py-2.5 font-[var(--font-mono)] text-[11px] leading-[16px] text-[var(--color-ink-3)]">
+          {job.log.slice(-120).join('\n')}
+        </pre>
+      )}
+    </div>
   )
 }

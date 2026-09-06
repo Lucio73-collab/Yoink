@@ -1,0 +1,31 @@
+services:
+  yoink-web:
+    build: .
+    # Or, once you have pushed an image:
+    # image: ghcr.io/lucio73-collab/yoink-web:latest
+    container_name: yoink-web
+    restart: unless-stopped
+    ports:
+      # Bound to localhost only: Caddy is the single way in from outside.
+      - "127.0.0.1:8080:8080"
+    environment:
+      # Generate one with: openssl rand -hex 24
+      YOINK_TOKEN: "${YOINK_TOKEN:?set YOINK_TOKEN in .env}"
+      CONCURRENCY: "2"
+      # Finished files are deleted after this many hours.
+      RETENTION_HOURS: "12"
+      # Optional. Lets the server reach content your account can see.
+      # COOKIES_FILE: /config/cookies.txt
+      #
+      # Set to 1 for multi-threaded in-browser encoding (roughly 3-5x faster).
+      # It sends COOP/COEP, which also blocks any third-party resource that
+      # does not send CORP. Safe here because nothing external is loaded.
+      # CROSS_ORIGIN_ISOLATED: "1"
+    volumes:
+      - ./downloads:/downloads
+      # - ./cookies.txt:/config/cookies.txt:ro
+    # A Pi should not be brought down by one runaway encode.
+    deploy:
+      resources:
+        limits:
+          memory: 768M

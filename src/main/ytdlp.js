@@ -190,6 +190,9 @@ export async function buildArgs(job, settings) {
     outputDir,
     '-o',
     template,
+    // Recovery and throttle flags go last so they override anything above:
+    // yt-dlp takes the final occurrence of a repeated option.
+    ...(job.extraArgs || []),
     '--',
     job.url
   ]

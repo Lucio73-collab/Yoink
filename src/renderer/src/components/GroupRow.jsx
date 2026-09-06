@@ -1,139 +1,102 @@
 import React from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { CaretRight, Playlist, X, Trash, ArrowClockwise } from '@phosphor-icons/react'
 import JobRow from './JobRow.jsx'
+import { ProgressBar, Button } from './ui/Fluent.jsx'
+import { useReveal, stagger } from '../lib/motion.js'
 import { rate } from '../lib/format.js'
 
-/**
- * Folds a playlist or Spotify collection into a single row. Collapsed by
- * default once it is running, because 50 expanded track rows is exactly the
- * clutter this exists to remove.
- */
-export default function GroupRow({ group, collapsed, onToggle, actions }) {
-  const { id, title, jobs } = group
+function Glyph({ d, className = 'h-4 w-4' }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="none" stroke="currentColor"
+         strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  )
+}
 
+/**
+ * A playlist rendered as one expandable Fluent list item. Collapsed by
+ * default, because fifty rows for one playlist is the clutter this removes.
+ */
+export default function GroupRow({ group, collapsed, onToggle, actions, index = 0 }) {
+  useReveal()
+  const { title, jobs } = group
   const done = jobs.filter((j) => j.status === 'done').length
   const failed = jobs.filter((j) => ['error', 'canceled'].includes(j.status)).length
   const running = jobs.filter((j) => j.status === 'running' || j.status === 'processing')
   const active = running.length > 0
   const speed = running.reduce((s, j) => s + (j.speed || 0), 0)
+  const allDone = done + failed === jobs.length
 
-  // Aggregate progress counts each finished item as whole, plus partials.
   const progress = jobs.length
-    ? jobs.reduce(
-        (sum, j) => sum + (j.status === 'done' ? 1 : j.status === 'running' ? j.progress || 0 : 0),
-        0
-      ) / jobs.length
+    ? jobs.reduce((sum, j) =>
+        sum + (j.status === 'done' ? 1 : j.status === 'running' ? j.progress || 0 : 0), 0) / jobs.length
     : 0
 
-  const allDone = done + failed === jobs.length
-  const state = failed && allDone ? 'error' : allDone ? 'done' : active ? 'running' : 'queued'
-
   return (
-    <div className="mb-1">
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.14 } }}
-        transition={{ type: 'spring', stiffness: 460, damping: 38 }}
-        className="job-row group mx-3 bg-mantle/60 transition-colors duration-150 hover:bg-mantle"
-        data-state={state}
-        style={{ '--fill': progress }}
-      >
-        <button
-          onClick={onToggle}
-          className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
-        >
-          <span className="grid h-[40px] w-[68px] shrink-0 place-items-center rounded-md bg-surface0">
-            <Playlist size={16} className={active ? 'text-green' : 'text-dim'} />
-          </span>
+    <div className="mb-1.5" data-flip-key={group.id}>
+      <div
+           style={{ animationDelay: stagger(index) }}
+           className={`card reveal reveal-border enter overflow-hidden ${active ? 'alive' : ''}`}>
+        <button onClick={onToggle} aria-expanded={!collapsed}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-100 hover:bg-[var(--color-fill-subtle-hover)]">
+          <Glyph d="M6 3.5L10.5 8 6 12.5"
+                 className={`h-3.5 w-3.5 shrink-0 text-[var(--color-ink-3)] transition-transform duration-150 ${collapsed ? '' : 'rotate-90'}`} />
 
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-2">
-              <motion.span
-                animate={{ rotate: collapsed ? 0 : 90 }}
-                transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-                className="text-muted"
-              >
-                <CaretRight size={13} weight="bold" />
-              </motion.span>
-              <span className="truncate text-[13.5px] font-medium text-text" title={title}>
-                {title}
-              </span>
-            </span>
-            <span className="mt-[3px] flex items-center gap-2 pl-[21px] text-[11.5px] text-muted">
-              <span className="tabular">
-                {done}/{jobs.length}
-              </span>
-              <span className="text-surface2">·</span>
-              <span>
-                {allDone ? (failed ? `${failed} failed` : 'complete') : active ? 'downloading' : 'queued'}
-              </span>
+          <div className="grid h-[40px] w-[68px] shrink-0 place-items-center rounded-[4px] bg-[var(--color-fill-press)]">
+            <Glyph d="M2 4h9M2 7h9M2 10h5M12.5 8.5v5l3.5-2.5z"
+                   className={`h-4 w-4 ${active ? 'text-[var(--color-accent-text)]' : 'text-[var(--color-ink-4)]'}`} />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="t-body truncate text-[var(--color-ink)]" title={title}>{title}</div>
+            <div className="t-caption mt-0.5 flex items-center gap-1.5 text-[var(--color-ink-3)]">
+              <span className="num">{done} of {jobs.length}</span>
+              <span aria-hidden>•</span>
+              <span>{allDone ? (failed ? `${failed} failed` : 'Completed') : active ? 'Downloading' : 'Queued'}</span>
               {failed > 0 && !allDone && (
                 <>
-                  <span className="text-surface2">·</span>
-                  <span className="text-red">{failed} failed</span>
+                  <span aria-hidden>•</span>
+                  <span className="text-[var(--color-danger)]">{failed} failed</span>
                 </>
               )}
-            </span>
-          </span>
+            </div>
+            {!allDone && <ProgressBar value={progress} live={active} className="mt-2" />}
+          </div>
 
-          <span className="tabular hidden shrink-0 items-baseline gap-4 text-[11.5px] sm:flex">
-            {active && <span className="w-[74px] text-right text-soft">{rate(speed)}</span>}
-            <span className="w-[40px] text-right text-[13px] font-medium text-green">
-              {Math.round(progress * 100)}%
-            </span>
-          </span>
+          <div className="num t-caption hidden shrink-0 items-baseline gap-4 sm:flex">
+            {active && <span className="w-[72px] text-right text-[var(--color-ink-2)]">{rate(speed)}</span>}
+            <span className="w-[38px] text-right text-[var(--color-ink)]">{Math.round(progress * 100)}%</span>
+          </div>
 
-          <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+          <span className="flex shrink-0 items-center gap-0.5">
             {failed > 0 && (
-              <span
-                role="button"
-                tabIndex={0}
-                title="Retry failed"
+              <Button appearance="subtle" size="sm" className="w-[28px] px-0" title="Retry failed"
                 onClick={(e) => {
                   e.stopPropagation()
                   jobs.filter((j) => ['error', 'canceled'].includes(j.status)).forEach((j) => actions.onRetry(j.id))
-                }}
-                className="grid h-7 w-7 place-items-center rounded-md text-muted transition-colors duration-150 hover:bg-surface1 hover:text-text"
-              >
-                <ArrowClockwise size={14} />
-              </span>
+                }}>
+                <Glyph d="M13 8a5 5 0 11-1.6-3.7M13 2v3h-3" className="h-3.5 w-3.5" />
+              </Button>
             )}
-            <span
-              role="button"
-              tabIndex={0}
+            <Button appearance="subtle" size="sm" className="w-[28px] px-0"
               title={allDone ? 'Remove all' : 'Cancel all'}
               onClick={(e) => {
                 e.stopPropagation()
                 jobs.forEach((j) => (allDone ? actions.onRemove(j.id) : actions.onCancel(j.id)))
-              }}
-              className="grid h-7 w-7 place-items-center rounded-md text-muted transition-colors duration-150 hover:bg-surface1 hover:text-red"
-            >
-              {allDone ? <Trash size={14} /> : <X size={14} />}
-            </span>
+              }}>
+              <Glyph d={allDone
+                ? 'M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.2a1 1 0 001 .8h3.8a1 1 0 001-.8l.6-8.2'
+                : 'M3.5 3.5l9 9M12.5 3.5l-9 9'} className="h-3.5 w-3.5" />
+            </Button>
           </span>
         </button>
-      </motion.div>
+      </div>
 
-      <AnimatePresence initial={false}>
-        {!collapsed && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="ml-6 mt-1 border-l border-surface1/60 pl-1">
-              {jobs.map((job) => (
-                <JobRow key={job.id} job={job} {...actions} />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!collapsed && (
+        <div className="ml-6 mt-1.5 border-l border-[var(--color-divider)] pl-3">
+          {jobs.map((job, i) => <JobRow key={job.id} index={i} job={job} {...actions} />)}
+        </div>
+      )}
     </div>
   )
 }
