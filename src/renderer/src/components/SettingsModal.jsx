@@ -77,7 +77,7 @@ export default function SettingsModal({ onClose }) {
     <div onClick={onClose} className="acrylic-scrim fixed inset-0 z-50 grid place-items-center p-8">
       <div onClick={(e) => e.stopPropagation()}
         className="flex h-full max-h-[620px] w-full max-w-[880px] flex-col overflow-hidden rounded-[8px]
-                   border border-[var(--color-stroke-2)] acrylic enter-scale
+                   border border-[var(--color-stroke-2)] acrylic enter-scale isolate
                    shadow-[0_32px_64px_rgba(0,0,0,0.5)]">
 
         <div className="flex items-center justify-between border-b border-[var(--color-divider)] px-6 py-4">
@@ -127,7 +127,7 @@ export default function SettingsModal({ onClose }) {
                   <Toggle checked={s.keepArchive} onChange={(v) => set({ keepArchive: v })} label="" />
                 </SettingRow>
                 <SettingRow label="Expand playlists into a group"
-                            hint="Each item gets its own progress and retry, folded into one row.">
+                            hint="Each item downloads and retries independently.">
                   <Toggle checked={s.expandPlaylists} onChange={(v) => set({ expandPlaylists: v })} label="" />
                 </SettingRow>
               </div>
@@ -237,12 +237,12 @@ export default function SettingsModal({ onClose }) {
             {page === 'spotify' && (
               <div className="flex flex-col gap-4">
                 <InfoBar severity="informational" title="Metadata only">
-                  Yoink does not decrypt Spotify audio. It reads metadata through Spotify's API,
-                  then finds the matching recording on YouTube Music.
+                  Reads track metadata from Spotify and downloads the matching recording from
+                  YouTube Music. Spotify audio itself is not decrypted.
                 </InfoBar>
                 <p className="t-body text-[var(--color-ink-2)]">
-                  Spotify's February 2026 developer changes mean a shared Client ID is no longer
-                  allowed, so you need your own. It is free and takes about a minute.
+                  Spotify requires each user to supply their own API credentials. Creating them
+                  is free and takes about a minute.
                 </p>
                 <ol className="t-body list-decimal space-y-1 pl-5 text-[var(--color-ink-2)]">
                   <li>Create an app in the Spotify developer dashboard.</li>
@@ -284,9 +284,8 @@ export default function SettingsModal({ onClose }) {
             {page === 'tools' && (
               <div className="flex flex-col gap-4">
                 <p className="t-body text-[var(--color-ink-2)]">
-                  Sites break extractors constantly, so yt-dlp needs to stay current. Deno is
-                  required to solve YouTube's JavaScript challenges; without it YouTube loses its
-                  best formats.
+                  yt-dlp updates frequently as sites change. Deno is required for YouTube
+                  support.
                 </p>
                 <div className="card divide-y divide-[var(--color-divider)]">
                   {bins.map((b) => {
@@ -309,7 +308,7 @@ export default function SettingsModal({ onClose }) {
                   })}
                 </div>
                 <SettingRow label="Keep yt-dlp up to date automatically"
-                            hint="Checks once a day. A stale yt-dlp is the most common cause of a download that stops working.">
+                            hint="Checks once a day in the background.">
                   <Toggle checked={s.autoUpdateTools} onChange={(v) => set({ autoUpdateTools: v })} label="" />
                 </SettingRow>
                 <div className="flex gap-2">
@@ -329,11 +328,11 @@ export default function SettingsModal({ onClose }) {
               <div className="flex flex-col gap-4">
                 <GroupLabel>Reliability</GroupLabel>
                 <SettingRow label="Recover from failures automatically"
-                            hint="Recognises known errors and retries with the fix applied.">
+                            hint="Retries failed downloads with the appropriate fix applied.">
                   <Toggle checked={s.autoRecover} onChange={(v) => set({ autoRecover: v })} label="" />
                 </SettingRow>
                 <SettingRow label="Slow down during large batches"
-                            hint="Bulk downloading is the fastest way to get rate limited.">
+                            hint="Spaces out requests when many items are queued.">
                   <Toggle checked={s.autoThrottle} onChange={(v) => set({ autoThrottle: v })} label="" />
                 </SettingRow>
                 <SettingRow label="Restore the queue after a restart">
@@ -342,7 +341,7 @@ export default function SettingsModal({ onClose }) {
 
                 <GroupLabel>Notifications</GroupLabel>
                 <SettingRow label="Notify when downloads finish"
-                            hint="Batched, so a playlist does not produce one alert per track.">
+                            hint="Grouped so a playlist does not alert once per track.">
                   <Toggle checked={s.notifyOnComplete} onChange={(v) => set({ notifyOnComplete: v })} label="" />
                 </SettingRow>
                 <SettingRow label="Watch the clipboard"

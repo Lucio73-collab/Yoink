@@ -5,13 +5,8 @@ const reduced = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
- * FLIP repositioning for lists.
- *
- * When rows are added, removed or filtered, the survivors normally teleport to
- * their new positions. This measures where each element was, lets React
- * repaint, then plays the difference backwards so everything glides. Done with
- * the Web Animations API rather than an animation library, because the whole
- * technique is about twenty lines and the library was 350 kB.
+ * FLIP repositioning. Measures element positions before layout changes, then
+ * plays the difference backwards so rows glide instead of jumping.
  */
 export function useFlip(deps) {
   const container = useRef(null)
@@ -46,13 +41,8 @@ export function useFlip(deps) {
 }
 
 /**
- * Eases a number toward its target and writes it straight to the DOM.
- *
- * The obvious implementation calls setState on every animation frame, which
- * re-renders the whole row. With one of these per speed readout and per
- * percentage, a queue of twenty active downloads would push forty React
- * renders per frame. Writing textContent through a ref animates the same
- * pixels at zero render cost.
+ * Eases a number toward its target, writing directly to the DOM.
+ * Avoids a setState per animation frame, which would re-render every row.
  */
 export function useSmoothText(target, format) {
   const ref = useRef(null)
@@ -94,13 +84,8 @@ export function useSmoothText(target, format) {
 }
 
 /**
- * Fluent Reveal highlight, delegated.
- *
- * A light follows the cursor across a surface and brightens the nearest
- * border. Attaching a listener per card meant a three hundred item queue
- * carried three hundred listeners, so this installs exactly one on the
- * document and finds the hovered surface by closest(). Coordinates are
- * written at most once per frame.
+ * Reveal highlight. One delegated document listener rather than one per card,
+ * with coordinates written at most once per frame.
  */
 let revealInstalled = false
 

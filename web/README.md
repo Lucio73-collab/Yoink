@@ -1,24 +1,12 @@
 # Yoink Web
 
-A small self-hosted web front end for yt-dlp. One Node file, no dependencies, no build step.
+A self-hosted web interface for downloading video and audio. One Node file, no dependencies, no build step.
 
-Paste a link on your phone, download the file when it is done.
-
----
-
-## Read this before deploying it publicly
-
-Do not run this as an open service on the internet. Two reasons, both practical:
-
-**It will stop working.** Datacenter IPs get flagged by YouTube quickly, and a public instance cannot fall back on browser cookies to recover. This is exactly why public downloader sites break constantly.
-
-**You become the operator.** Running a service that downloads content for strangers is a different position from running a tool on your own machine.
-
-Self-hosted on hardware you own, reachable over Tailscale or behind your own reverse proxy, has neither problem. Your IP, your cookies, your traffic.
+Meant for hardware you own, reached over Tailscale or your own reverse proxy.
 
 ---
 
-## Run it
+## Setup
 
 ```bash
 cd web
@@ -26,77 +14,87 @@ echo "YOINK_TOKEN=$(openssl rand -hex 24)" > .env
 docker compose up -d --build
 ```
 
-It listens on `127.0.0.1:8080`, so nothing reaches it except through your reverse proxy.
+Listens on `127.0.0.1:8080`. Add the block in `Caddyfile.snippet` to your Caddyfile to expose it.
 
 Without Docker:
 
 ```bash
-YOINK_TOKEN=something-long node server.mjs
+./fetch-vendor.sh
+YOINK_TOKEN=your-token node server.mjs
 ```
 
-You need `yt-dlp`, `ffmpeg` and `deno` on PATH.
+Requires `yt-dlp`, `ffmpeg` and `deno` on PATH.
 
-## Behind Caddy
-
-`Caddyfile.snippet` has a working block. The important line is:
-
-```
-flush_interval -1
-```
-
-Without it Caddy buffers the response and the live progress stream never arrives, so downloads look frozen until they finish.
+---
 
 ## Configuration
 
-| Variable | Default | Notes |
+| Variable | Default | Description |
 |---|---|---|
-| `YOINK_TOKEN` | none | Leave unset and the instance is open. Always set it. |
-| `PORT` | 8080 | |
+| `YOINK_TOKEN` | none | Access token. Without it the instance is open to anyone who can reach it. |
+| `PORT` | `8080` | |
 | `DOWNLOAD_DIR` | `/downloads` | |
-| `CONCURRENCY` | 2 | Two is right for a Pi. |
-| `RETENTION_HOURS` | 12 | Finished files are deleted after this. |
-| `COOKIES_FILE` | none | Netscape `cookies.txt`. Lets the server reach content your account can see. |
+| `CONCURRENCY` | `2` | Simultaneous downloads |
+| `RETENTION_HOURS` | `12` | Completed files are deleted after this many hours |
+| `COOKIES_FILE` | none | Path to a Netscape-format `cookies.txt` |
+| `CROSS_ORIGIN_ISOLATED` | `0` | Set to `1` for multi-threaded in-browser encoding |
 
-## Cookies
+---
 
-Optional, and the single biggest quality upgrade. Without cookies the server is an anonymous visitor and YouTube treats it accordingly. With them it can fetch age-restricted and members-only content your account has access to, and bot checks largely stop.
+## Browser-side processing
 
-Export a `cookies.txt` from a browser extension, mount it read-only, and point `COOKIES_FILE` at it. Export from a private window and then close it without logging out: logging out invalidates the session server-side and kills the exported file with it.
+Compression and format conversion run entirely on the visitor's machine through ffmpeg.wasm. Files are never uploaded and the server does no encoding.
 
-## Notes
-
-- Progress streams over Server-Sent Events. A comment is sent every 25 seconds because proxies drop idle streams.
-- Video is merged to MP4 rather than MKV, since browsers handle MP4 far better on the download step.
-- The container runs as an unprivileged user and is capped at 768 MB so one runaway encode cannot take the Pi down.
-- Downloads land under a UUID directory, and `/api/file/:id` resolves the path and confirms containment before serving.
-
-## Running work in the visitor's browser
-
-The page has two halves, split by what browsers are actually allowed to do.
-
-**Compress and convert runs entirely client-side.** ffmpeg.wasm does the encoding on the visitor's own machine. The file is never uploaded, the server spends no CPU and stores nothing, and the work scales with however many people are using it. Same target-size logic as the desktop app, including dropping resolution when the bitrate gets too low to look good.
-
-**Downloading cannot.** Not "hard", not "needs a workaround" — browsers forbid it. Media hosts like googlevideo do not send `Access-Control-Allow-Origin`, so page JavaScript is blocked from fetching the stream even if it knew the URL. That is a security boundary, so the fetch stays on the server.
+Downloading stays server-side. Browsers block requests to media hosts that do not send CORS headers, so page JavaScript cannot fetch the streams.
 
 The encoder is about 32 MB and loads on first use, then stays cached.
 
 ### Threaded encoding
 
-By default the single-threaded core is used, which needs no special headers and works everywhere.
+The default single-threaded encoder works everywhere with no extra configuration.
 
-Set `CROSS_ORIGIN_ISOLATED=1` for roughly 3-5x faster encoding. It enables `SharedArrayBuffer` by sending:
+`CROSS_ORIGIN_ISOLATED=1` enables the multi-threaded encoder, roughly 3 to 5 times faster. It sends:
 
 ```
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-The catch is that `require-corp` blocks any third-party resource that does not send `Cross-Origin-Resource-Policy`. Nothing external is loaded here, so it is safe, but it is opt-in because it is a page-breaking failure elsewhere if you add a CDN font later.
+`require-corp` blocks third-party resources that do not send `Cross-Origin-Resource-Policy`. Nothing external is loaded here, but keep it in mind if you add anything later.
 
-ffmpeg.wasm is vendored at build time rather than pulled from a CDN, because under COEP a cross-origin script is blocked unless it sends CORP, and the public CDNs do not. Versions are pinned so builds are reproducible.
+ffmpeg.wasm is served from the app rather than a CDN, with pinned versions.
 
-Without Docker, run `./fetch-vendor.sh` once first.
+---
 
-## What it does not do
+## Reverse proxy
 
-No Spotify matching, no local file compression or conversion, no playlist expansion. Those live in the desktop app, which has a real UI and your browser's cookies. This is the paste-a-link-from-your-phone case, kept small on purpose.
+`flush_interval -1` is required in the Caddy block. Without it responses are buffered, the progress stream never arrives, and downloads appear frozen until they complete.
+
+---
+
+## Cookies
+
+Optional, and the largest quality improvement available. With a `cookies.txt` mounted, the server can reach age-restricted and members-only content your account has access to, and bot checks largely stop.
+
+Export from a private browsing window, then close it without logging out. Logging out invalidates the session and the exported file with it.
+
+---
+
+## Notes
+
+- Progress is delivered over Server-Sent Events, with a keepalive every 25 seconds.
+- Video is merged to MP4 rather than MKV for browser compatibility.
+- The container runs unprivileged with a 768 MB memory limit.
+- Files are stored under a UUID directory; download paths are resolved and checked for containment.
+
+---
+
+## Not included
+
+Spotify matching and playlist expansion are desktop-only features.
+
+---
+
+## Security
+
+Do not expose this publicly. Server IP addresses get rate-limited by video hosts quickly, and a public instance cannot fall back on browser cookies. Running it behind Tailscale or an authenticated reverse proxy avoids both problems.

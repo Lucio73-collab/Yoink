@@ -1,19 +1,6 @@
 @import 'tailwindcss';
 
-/*
-  Fluent 2 / WinUI 3 dark theme.
-
-  Values are the real WinUI tokens rather than approximations, because the
-  difference between "looks like Windows" and "looks like it is imitating
-  Windows" lives entirely in these numbers. Notably:
-
-  - Controls are white at low alpha OVER the background, not solid greys.
-    That layering is what makes Windows 11 surfaces read as native.
-  - Corner radius is 4px on controls and 8px on layers. Rounder than that
-    immediately reads as a web app.
-  - Type is Segoe UI Variable, which ships with Windows and has separate
-    optical sizes for captions, body and headings.
-*/
+/* Fluent 2 / WinUI 3 dark theme tokens. */
 
 @theme {
   /* Solid backgrounds */
@@ -22,7 +9,7 @@
   --color-layer: #282828;        /* Tertiary */
   --color-elevated: #2c2c2c;     /* Quarternary, dialogs and flyouts */
 
-  /* Control fills: white over background, per WinUI */
+  /* Control fills: white at low alpha over the background */
   --color-fill-rest: rgba(255, 255, 255, 0.0605);
   --color-fill-hover: rgba(255, 255, 255, 0.0837);
   --color-fill-press: rgba(255, 255, 255, 0.0326);
@@ -42,8 +29,7 @@
   --color-ink-3: rgba(255, 255, 255, 0.5442);    /* Tertiary */
   --color-ink-4: rgba(255, 255, 255, 0.3628);    /* Disabled */
 
-  /* Accent, with the Rest/Hover/Pressed states Fluent expects.
-     Fill and text are separate values: a colour readable as a button
+  /* Accent. Fill and text are separate: a colour that works as a button
      background is rarely readable as text on a dark surface. */
   --color-accent: #6ccb5f;
   --color-accent-hover: #7ad46e;
@@ -57,8 +43,7 @@
   --color-caution: #fce100;
   --color-success: #6ccb5f;
 
-  /* Segoe UI Variable ships with Windows 11 and has three optical sizes.
-     Using them is one of the strongest native signals available. */
+  /* Segoe UI Variable ships with Windows 11 and has three optical sizes. */
   --font-sans: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI',
                system-ui, -apple-system, sans-serif;
   --font-display: 'Segoe UI Variable Display', 'Segoe UI Variable', 'Segoe UI',
@@ -67,7 +52,7 @@
                 system-ui, sans-serif;
   --font-mono: 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
 
-  /* Fluent motion: short and functional. Nothing here is decorative. */
+  /* Motion curves */
   --ease-standard: cubic-bezier(0.33, 0, 0.67, 1);
   --ease-decel: cubic-bezier(0.1, 0.9, 0.2, 1);
   --ease-accel: cubic-bezier(0.7, 0, 1, 0.5);
@@ -101,8 +86,7 @@
 
   ::selection { background: var(--color-accent-subtle); }
 
-  /* Fluent focus is a dual ring: dark outer, light inner. It stays visible
-     on any surface, which a single-colour ring does not. */
+  /* Dual focus ring, stays visible on any surface */
   :focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 1px;
@@ -125,20 +109,17 @@
   .drag-region { -webkit-app-region: drag; }
   .no-drag { -webkit-app-region: no-drag; }
 
-  /* Numbers align in columns. Windows uses Segoe with tabular figures for
-     this rather than switching to a monospace face. */
+  /* Tabular figures so numbers do not shift width as they change */
   .num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
 
-  /* WinUI Card: low-alpha fill plus a 1px stroke. The stroke is the part
-     that makes it read as a Windows surface. */
+  /* WinUI Card: low-alpha fill plus a 1px stroke */
   .card {
     background: var(--color-card);
     border: 1px solid var(--color-stroke);
     border-radius: 8px;
   }
 
-  /* NavigationView selection indicator: a short vertical pill on the leading
-     edge. This is the correct Fluent pattern, not a generic active border. */
+  /* NavigationView selection indicator */
   .nav-item { position: relative; }
   .nav-item::before {
     content: '';
@@ -183,10 +164,7 @@
 
 
 @layer components {
-  /* ---------- Fluent Reveal ----------
-     A light follows the cursor across a surface and brightens the nearest
-     border. The most recognisable Fluent effect, and it costs two custom
-     properties updated on pointer move. */
+  /* Reveal: a light follows the cursor and brightens the nearest border */
   .reveal {
     position: relative;
     --reveal-x: 50%;
@@ -207,7 +185,7 @@
       transparent 60%
     );
   }
-  /* Border reveal: a brighter ring nearest the cursor, masked to the edge. */
+  /* Border reveal, masked to the edge */
   .alive.reveal-border::after,
   .reveal-border::before {
     content: '';
@@ -228,23 +206,22 @@
     mask-composite: exclude;
   }
 
-  /* ---------- Acrylic ----------
-     Windows blurs and tints what is behind a surface rather than dimming it.
-     Backdrop blur plus a noise-free tint is the closest the web gets. */
+  /* Acrylic. Kept near-opaque: an element animating transform or opacity
+     creates its own stacking context, which stops backdrop-filter sampling
+     the page behind it. */
   .acrylic {
-    background: rgba(44, 44, 44, 0.72);
-    backdrop-filter: blur(30px) saturate(125%);
-    -webkit-backdrop-filter: blur(30px) saturate(125%);
+    background: #2a2a2a;
+    background: color-mix(in srgb, #2a2a2a 97%, transparent);
+    backdrop-filter: blur(40px) saturate(140%);
+    -webkit-backdrop-filter: blur(40px) saturate(140%);
   }
   .acrylic-scrim {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px) saturate(80%);
+    -webkit-backdrop-filter: blur(12px) saturate(80%);
   }
 
-  /* ---------- WinUI ProgressRing ----------
-     The indeterminate spinner Windows uses: an arc that rotates while its
-     gap grows and shrinks, so it never looks like a static rotating dash. */
+  /* WinUI ProgressRing */
   .ring {
     animation: ring-spin 1.4s linear infinite;
     transform-origin: center;
@@ -260,9 +237,7 @@
     100% { stroke-dasharray: 1 84; stroke-dashoffset: -83; }
   }
 
-  /* ---------- Entrance ----------
-     Fluent entrance: content rises a short distance and fades. The distance
-     is small on purpose; large travel reads as a web page, not an app. */
+  /* Entrance transitions */
   .enter {
     animation: enter 320ms var(--ease-decel) both;
   }
@@ -294,13 +269,8 @@
     to   { opacity: 1; transform: translateX(0); }
   }
 
-  /* ---------- Active download pulse ----------
-     A slow breathing accent border on rows that are transferring, so a busy
-     queue is readable at a glance.
-
-     Animating border-color repaints the element every frame. Fading a
-     pre-rendered ring's opacity instead runs entirely on the GPU, which
-     matters because several of these run at once. */
+  /* Pulse on transferring rows. Fades a pre-rendered ring's opacity rather
+     than animating border-color, which would repaint every frame. */
   .alive { position: relative; }
   .alive:not(.reveal-border)::before {
     content: '';

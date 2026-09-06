@@ -81,7 +81,7 @@ export default function DropPanel({ files, onClose }) {
     <div onClick={onClose} className="acrylic-scrim fixed inset-0 z-50 grid place-items-center p-8">
       <div onClick={(e) => e.stopPropagation()}
         className="flex max-h-[620px] w-full max-w-[560px] flex-col overflow-hidden rounded-[8px]
-                   border border-[var(--color-stroke-2)] acrylic enter-scale
+                   border border-[var(--color-stroke-2)] acrylic enter-scale isolate
                    shadow-[0_32px_64px_rgba(0,0,0,0.5)]">
 
         <div className="px-6 pb-3 pt-5">
@@ -175,9 +175,9 @@ export default function DropPanel({ files, onClose }) {
         <div className="flex items-center gap-3 border-t border-[var(--color-divider)] px-6 py-4">
           <p className="t-caption flex-1 text-[var(--color-ink-3)]">
             {mode === 'compress'
-              ? 'Two-pass encode. Resolution drops automatically when the bitrate is too low.'
+              ? 'Two-pass encode. Resolution is reduced when the bitrate requires it.'
               : format === 'mkv'
-                ? 'MKV copies the existing streams, so this is instant and lossless.'
+                ? 'Copies existing streams. Instant and lossless.'
                 : 'This re-encodes the file.'}
           </p>
           <Button appearance="subtle" onClick={onClose}>Cancel</Button>

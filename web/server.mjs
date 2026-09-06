@@ -1,15 +1,9 @@
 #!/usr/bin/env node
 /**
- * Yoink Web — a small self-hosted front end for yt-dlp.
+ * Yoink Web — self-hosted front end for yt-dlp.
  *
- * Deliberately dependency-free: plain node:http, no framework, no build step.
- * The whole server is one file so it can be read in a sitting and deployed by
- * copying it.
- *
- * This is meant to run on hardware you own, reachable over Tailscale or behind
- * a reverse proxy you control. A public instance is a different proposition:
- * datacenter IPs get flagged by YouTube quickly and cannot fall back to
- * browser cookies, which is why public downloader sites break constantly.
+ * Single file, no dependencies, no build step. Intended for hardware you own,
+ * behind Tailscale or an authenticated reverse proxy.
  */
 
 import http from 'node:http'

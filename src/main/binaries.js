@@ -38,9 +38,8 @@ async function unzip(zipPath, destDir) {
 }
 
 /**
- * Yoink never bundles third party binaries inside the installer. They are
- * fetched here on first run and can be refreshed independently, which matters
- * a lot: yt-dlp ships fixes for extractor breakage almost daily.
+ * Third-party binaries are fetched on first run rather than bundled, so
+ * yt-dlp can be refreshed independently of app releases.
  */
 
 export const BIN_DIR = path.join(app.getPath('userData'), 'bin')

@@ -1,9 +1,6 @@
 /**
- * Most download failures are a handful of known problems with known fixes.
- * Rather than showing the user a stack trace and making them go and read a
- * GitHub issue, Yoink recognises the failure and retries with the fix applied.
- *
- * Each strategy is tried at most once per job, in order.
+ * Known failures and their fixes. Each strategy is tried at most once per job,
+ * in order.
  */
 
 export const STRATEGIES = [
@@ -11,17 +8,13 @@ export const STRATEGIES = [
     id: 'bot-check',
     match: /sign in to confirm|not a bot|LOGIN_REQUIRED|confirm you'?re not/i,
     title: 'YouTube bot check',
-    // The error text tells you to use cookies. That advice is now incomplete:
-    // YouTube added a proof-of-origin check on top of the session check, so
-    // cookies alone often produce the same challenge again. Changing which
-    // playback client yt-dlp identifies as clears it far more reliably and
-    // needs no account.
+    // Cookies alone often fail here: YouTube checks proof of origin as well
+    // as the session. Changing the playback client clears it more reliably.
     explain: 'YouTube wanted proof the request came from a real browser.',
     action: 'Retried as a different YouTube client',
     args(settings) {
-      // The tv client authenticates differently, and the mismatch can
-      // invalidate the session you exported cookies from, logging you out of
-      // your own browser. Only reach for it when no cookies are in play.
+      // The tv client can invalidate the session cookies were exported from,
+      // so only use it when no cookies are configured.
       const usingCookies = settings.cookiesFrom && settings.cookiesFrom !== 'none'
       return [
         '--extractor-args',

@@ -39,7 +39,7 @@ function buildRows(jobs) {
 
 function Empty({ filter }) {
   const copy = {
-    all: ['No downloads yet', 'Paste a link above, or drag a file here to compress or convert it.'],
+    all: ['No downloads yet', 'Paste a link above, or drop a file here to compress or convert it.'],
     active: ['Nothing in progress', 'Downloads that are running or queued appear here.'],
     done: ['Nothing completed yet', 'Finished downloads are listed here for this session.'],
     failed: ['No failures', 'Downloads that could not complete are listed here with their logs.']
@@ -68,7 +68,7 @@ function SetupDialog({ items }) {
         <div className="px-6 pb-4 pt-5">
           <h2 className="t-subtitle text-[var(--color-ink)]">Setting up Yoink</h2>
           <p className="t-body mt-1.5 text-[var(--color-ink-2)]">
-            Downloading yt-dlp, FFmpeg and Deno. About 120 MB, one time only.
+            Downloading yt-dlp, FFmpeg and Deno. About 120 MB, once.
           </p>
           <div className="mt-5 flex flex-col gap-3.5">
             {order.map((key) => {

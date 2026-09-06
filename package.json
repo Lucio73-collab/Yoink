@@ -1,7 +1,7 @@
 {
   "name": "yoink",
-  "version": "1.7.0",
-  "description": "Windows desktop downloader for video and audio, plus local compression and format conversion. Powered by yt-dlp and FFmpeg.",
+  "version": "2.0.0",
+  "description": "Windows desktop downloader for video and audio from 1800+ sites, with target-size compression and format conversion.",
   "main": "./out/main/index.js",
   "author": "Lucio73",
   "license": "GPL-3.0",

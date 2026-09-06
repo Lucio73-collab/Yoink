@@ -52,13 +52,8 @@ export const SIZE_PRESETS = [
 ]
 
 /**
- * Works out the bitrates needed to land under a target size, and how far the
- * picture has to be scaled down to make that bitrate look acceptable.
- *
- * Naively dividing size by duration produces technically-correct numbers that
- * look terrible: 1080p at 400 kbps is a smear. Dropping resolution so the
- * available bits are spread over fewer pixels is what makes the result
- * watchable, and it is the step most size-targeting tools skip.
+ * Bitrates needed to land under a target size, plus how far to scale the
+ * picture down so that bitrate still looks acceptable.
  */
 export function planCompress(info, targetBytes) {
   const duration = info.duration
@@ -144,9 +139,8 @@ function uniquePath(dir, base, ext) {
 }
 
 /**
- * Two-pass x264 encode to hit a target size. Two-pass matters here: a single
- * CRF pass cannot be told "be this many bytes", and single-pass ABR overshoots
- * badly on variable content, which defeats the entire point.
+ * Two-pass x264 encode to hit a target size. CRF cannot target a byte count
+ * and single-pass ABR overshoots on variable content.
  */
 export async function compress(job, handlers = {}) {
   const info = await probeFile(job.file)

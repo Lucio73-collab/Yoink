@@ -14,12 +14,7 @@ import { probe } from './ytdlp.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-/**
- * A throw inside a timer, an IPC handler's stray callback, or a rejected
- * promise nobody awaited will otherwise take the whole app down with a native
- * error dialog. None of Yoink's background work is important enough to justify
- * that, so log and keep running.
- */
+/* Background work should never bring down the app with a native error dialog. */
 process.on('uncaughtException', (err) => {
   console.error('[yoink] uncaught exception:', err)
 })
@@ -78,14 +73,9 @@ const send = (channel, payload) => {
 /* ---------- notification batching ---------- */
 
 /**
- * A Spotify playlist finishes dozens of tracks in a burst, and one toast per
- * track is unusable. This collapses a burst into a single summary.
- *
- * Three limits work together, because any one alone breaks somewhere:
- *  - QUIET: fire once things go quiet, so a single download still feels instant
- *  - MAX_HOLD: fire anyway during a long steady stream, which would otherwise
- *    reset the debounce forever and never notify at all
- *  - MAX_BATCH: fire early on a huge burst so the count stays meaningful
+ * Collapses a burst of completions into one notification.
+ * QUIET fires once activity stops, MAX_HOLD prevents a steady stream from
+ * resetting the debounce forever, MAX_BATCH caps a single summary.
  */
 const QUIET_MS = 3500
 const MAX_HOLD_MS = 20000
@@ -154,11 +144,9 @@ const notifyBatcher = {
 const URL_RE = /^(?:https?:\/\/|spotify:)\S+$/i
 
 /**
- * The clipboard is shared OS state. Another process can hold a lock on it, and
- * it can contain image or file data rather than text. Electron's readText is
- * documented as returning a string but in practice can hand back undefined on
- * Windows in those cases, so this coerces and never throws. A polling timer
- * must not be able to take down the main process.
+ * readText is documented as returning a string but can return undefined on
+ * Windows when the clipboard holds non-text data or another process has it
+ * locked. Coerced and guarded so a polling timer cannot crash the process.
  */
 function readClipboardText() {
   try {

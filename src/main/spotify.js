@@ -4,16 +4,12 @@ import crypto from 'node:crypto'
 import { search } from './ytdlp.js'
 
 /**
- * Spotify streams are encrypted and Yoink does not touch that. This module
- * only reads public catalogue metadata through Spotify's own Web API, then
- * finds the matching recording on YouTube Music and downloads that. It is the
- * same approach spotDL uses.
+ * Reads Spotify catalogue metadata, then matches each track to a recording on
+ * YouTube Music. Spotify streams themselves are encrypted and untouched.
  *
- * Since Spotify's February 2026 Developer Mode changes, a shared Client ID is
- * no longer viable: each one is capped to a handful of authorised users and
- * distributing one publicly gets it revoked. So the user brings their own,
- * and we use Authorization Code + PKCE rather than Client Credentials, which
- * Spotify has been moving metadata endpoints away from.
+ * Each user supplies their own Client ID: Developer Mode apps are capped to a
+ * small allowlist, so a shared one is not viable. Auth is Authorization Code
+ * with PKCE.
  */
 
 const REDIRECT_PORT = 8888

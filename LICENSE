@@ -1,9 +1,30 @@
-Yoink is licensed under the GNU General Public License v3.0, matching the
-license of yt-dlp which it builds upon.
+Yoink
+Copyright (C) 2026 Lucio73
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
 
 Full text: https://www.gnu.org/licenses/gpl-3.0.txt
 
-Third party tools fetched at runtime and NOT redistributed with this software:
-  yt-dlp   - Unlicense       - https://github.com/yt-dlp/yt-dlp
-  FFmpeg   - GPL v3 (patched)  - https://github.com/yt-dlp/FFmpeg-Builds
-  Deno     - MIT             - https://github.com/denoland/deno
+
+THIRD-PARTY COMPONENTS
+
+The following are downloaded at runtime and are not distributed with this
+software:
+
+  yt-dlp   Unlicense   https://github.com/yt-dlp/yt-dlp
+  FFmpeg   GPL-3.0     https://github.com/yt-dlp/FFmpeg-Builds
+  Deno     MIT         https://github.com/denoland/deno
+
+The web interface serves ffmpeg.wasm, licensed MIT with an LGPL/GPL FFmpeg core:
+
+  ffmpeg.wasm   MIT   https://github.com/ffmpegwasm/ffmpeg.wasm
