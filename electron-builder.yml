@@ -1,0 +1,64 @@
+appId: dev.lucio73.yoink
+productName: Yoink
+copyright: Copyright © 2026 Lucio73
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+
+# No binaries are shipped inside the installer. yt-dlp, ffmpeg and deno are
+# fetched on first run into %APPDATA%/Yoink/bin so they can be updated
+# independently of the app and stay legally clean to redistribute.
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  icon: build/icon.ico
+
+nsis:
+  # artifactName belongs per target. There is no per-target macro available to
+  # a shared win.artifactName, so it cannot distinguish installer from portable.
+  artifactName: ${productName}-${version}-setup.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Yoink
+  deleteAppDataOnUninstall: false
+
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+
+publish:
+  provider: github
+  # Explicit owner/repo. Without these electron-builder must infer the target
+  # from .git/config or package.json, and during publishing a failed inference
+  # throws rather than warns.
+  owner: Lucio73-collab
+  repo: yoink
+  releaseType: release
+
+# Notes deliberately avoid naming exact filenames: electron-builder derives
+# them from package.json version, which has no leading "v", so hardcoding a
+# tag-shaped name drifts the moment either changes.
+releaseInfo:
+  releaseNotes: |
+    ## Install
+
+    **portable.exe** — single file, no install, just run it.
+    **setup.exe** — installer, Start menu entry, auto-updates.
+
+    Windows shows a SmartScreen warning because the exe is not code-signed.
+    Click **More info**, then **Run anyway**.
+
+    First launch downloads yt-dlp, FFmpeg and Deno (~120 MB, once).

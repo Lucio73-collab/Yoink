@@ -1,0 +1,82 @@
+name: Build Windows
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      # npm ci is strict about lockfileVersion. A lock written by a much newer
+      # npm than the runner's can fail outright, so fall back rather than
+      # breaking the release over it.
+      - name: Install dependencies
+        shell: bash
+        run: npm ci || npm install
+
+      - name: Build renderer and main
+        run: npm run build
+
+      # --publish never means electron-builder makes no GitHub API calls at
+      # all. It still writes latest.yml, because update-info generation is
+      # driven by the publish *config* rather than the publish *action*.
+      # Uploading separately keeps packaging failures distinguishable from
+      # release failures, which a combined step hides behind one exit code.
+      - name: Package
+        run: npx electron-builder --win --publish never
+        env:
+          DEBUG: ${{ runner.debug == '1' && 'electron-builder' || '' }}
+
+      - name: Show what was built
+        shell: bash
+        run: ls -la release/
+
+      - name: Verify expected artifacts exist
+        shell: bash
+        run: |
+          set -e
+          for f in release/Yoink-*-setup.exe release/Yoink-*-portable.exe release/latest.yml; do
+            [ -f $f ] || { echo "MISSING: $f"; exit 1; }
+          done
+          echo "All three artifacts present."
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            **Yoink-setup.exe** — installer, Start menu entry, auto-updates.
+            **Yoink-portable.exe** — single file, no install, just run it.
+
+            Windows shows a SmartScreen warning because the exe is not code-signed.
+            Click **More info**, then **Run anyway**.
+
+            First launch downloads yt-dlp, FFmpeg and Deno (~120 MB, once).
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yoink-windows
+          path: release/
+          if-no-files-found: warn

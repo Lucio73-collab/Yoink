@@ -1,0 +1,204 @@
+@import 'tailwindcss';
+
+@import '@fontsource-variable/outfit';
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+@import '@fontsource-variable/jetbrains-mono';
+
+/*
+  Palette is deliberately capped. Catppuccin Mocha ships 26 accent colours and
+  using more than two is the fastest way to look like nothing was decided.
+  Green carries every accent job. Red appears only for failure. Everything
+  else is neutral. Elevation comes from background lightness, never from a 1px
+  grey border on every surface.
+*/
+
+@theme {
+  /*
+    Pure neutral greyscale. Catppuccin Mocha's greys carry a blue-violet hue
+    (#1e1e2e), which reads as "tinted" next to genuinely neutral dark UI.
+    These are hue-free, so green is the only colour in the interface.
+  */
+  --color-void: #0a0a0a;
+  --color-crust: #101010;
+  --color-mantle: #161616;
+  --color-base: #1c1c1c;
+  --color-surface0: #232323;
+  --color-surface1: #2d2d2d;
+  --color-surface2: #3d3d3d;
+
+  --color-dim: #525252;
+  --color-muted: #6e6e6e;
+  --color-soft: #949494;
+  --color-subtext: #b8b8b8;
+  --color-text: #e3e3e3;
+  --color-bright: #f7f7f7;
+
+  /* The only two colours in the entire app */
+  --color-green: #a6e3a1;
+  --color-greendim: #7cc47a;
+  --color-red: #ef7a85;
+
+  --font-display: 'Outfit Variable', ui-sans-serif, sans-serif;
+  --font-sans: 'Geist Sans', ui-sans-serif, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-void);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-green) 26%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-green);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface1);
+    border: 4px solid transparent;
+    background-clip: content-box;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-surface2);
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+
+  /* Telemetry is a typographic voice here, not small grey text. */
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .label {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /*
+    Signature detail: the row IS the progress bar. No separate track tucked
+    underneath. Driven by --fill and eased so it glides between yt-dlp's
+    progress ticks instead of stepping.
+  */
+  .job-row {
+    position: relative;
+    isolation: isolate;
+    border-radius: 10px;
+  }
+  .job-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    transform-origin: left;
+    transform: scaleX(var(--fill, 0));
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-green) 16%, transparent) 0%,
+      color-mix(in oklab, var(--color-green) 6%, transparent) 100%
+    );
+    transition: transform 500ms var(--ease-out);
+  }
+  .job-row[data-state='error']::before {
+    background: color-mix(in oklab, var(--color-red) 12%, transparent);
+  }
+
+  /* Indeterminate phase: a slow pass, not a spinner. */
+  .sweep::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--color-green) 9%, transparent) 50%,
+      transparent 100%
+    );
+    animation: sweep 1.8s var(--ease-in-out) infinite;
+  }
+  @keyframes sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+
+  .pulse { animation: pulse 2s var(--ease-in-out) infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .hairline {
+    background: color-mix(in oklab, var(--color-surface1) 55%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
