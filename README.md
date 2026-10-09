@@ -1,13 +1,35 @@
-<div align="center">
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+    <img src="docs/assets/banner.svg" alt="Yoink: paste a link, get the best quality the source has" width="100%">
+  </picture>
+</p>
 
-# Yoink
+<p align="center">
+  <b>A downloader for Windows.</b> Paste a link, get the highest quality file the source has.
+  <br><br>
+  <a href="https://github.com/Lucio73-collab/Yoink/releases/latest"><strong>Download the latest release »</strong></a>
+  <br><br>
+  <a href="https://github.com/Lucio73-collab/Yoink/issues/new?template=bug_report.yml">Report bug</a>
+  ·
+  <a href="https://github.com/Lucio73-collab/Yoink/issues/new?template=feature_request.yml">Request feature</a>
+  ·
+  <a href="https://github.com/Lucio73-collab/Yoink/releases">Releases</a>
+</p>
 
-**A downloader for Windows.** Paste a link, get the highest quality file the source has.
+<p align="center">
+  <a href="https://github.com/Lucio73-collab/Yoink/releases/latest"><img src="https://img.shields.io/github/v/release/Lucio73-collab/Yoink?style=flat-square&color=a6e3a1&labelColor=111111&label=release" alt="Latest release"></a>
+  <a href="https://github.com/Lucio73-collab/Yoink/releases"><img src="https://img.shields.io/github/downloads/Lucio73-collab/Yoink/total?style=flat-square&color=333333&labelColor=111111" alt="Total downloads"></a>
+  <a href="https://github.com/Lucio73-collab/Yoink/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lucio73-collab/Yoink/build.yml?style=flat-square&label=build&labelColor=111111" alt="Build"></a>
+  <img src="https://img.shields.io/badge/platform-Windows-333333?style=flat-square&logo=windows&labelColor=111111" alt="Windows">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Lucio73-collab/Yoink?style=flat-square&color=333333&labelColor=111111" alt="License"></a>
+</p>
 
-[![Download](https://img.shields.io/github/v/release/Lucio73-collab/yoink?label=Download&style=for-the-badge&color=6ccb5f)](https://github.com/Lucio73-collab/yoink/releases/latest)
-[![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
-
-</div>
+<!-- Screenshot: save a capture of the main window as docs/assets/screenshot.png, then remove this comment wrapper.
+<p align="center">
+  <img src="docs/assets/screenshot.png" alt="Yoink main window" width="800">
+</p>
+-->
 
 ---
 
@@ -129,8 +151,14 @@ Keeping them outside the installer means yt-dlp can update independently, which 
 
 ---
 
+## Contributing
+
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md). Security issues: [SECURITY.md](SECURITY.md).
+
+---
+
 ## License
 
-GPL-3.0. See [LICENSE](LICENSE).
+GPL-3.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for third-party components.
 
 Downloading content is your responsibility. Respect the terms of the sites you use and the rights of the people who made what you are downloading.

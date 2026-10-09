@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="Yoink">
+<title>Yoink</title>
+<rect width="1280" height="640" fill="#0d0d0d"/>
+<g transform="translate(560 110) scale(2.5)"><rect x="1" y="1" width="62" height="62" rx="14" fill="#a6e3a1"/><g stroke="#0d0d0d" stroke-linecap="round" fill="none"><path d="M32 15 V35" stroke-width="7"/><path d="M19 50 H45" stroke-width="5"/></g><path d="M21 32 H43 L32 45 Z" fill="#0d0d0d" stroke="#0d0d0d" stroke-width="2" stroke-linejoin="round"/></g>
+<text x="640" y="390" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="96" font-weight="800" fill="#f2f2f2" letter-spacing="-2">Yoink</text>
+<text x="640" y="450" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="32" fill="#9a9a9a">Paste a link, get the best quality the source has</text>
+<text x="640" y="560" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="20" fill="#5c5c5c">github.com/Lucio73-collab/Yoink</text>
+<rect x="0" y="632" width="1280" height="8" fill="#a6e3a1"/>
+</svg>

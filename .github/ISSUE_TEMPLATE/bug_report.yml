@@ -1,0 +1,28 @@
+name: Bug report
+description: Something is not working
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Steps to reproduce, expected vs actual.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Yoink version
+      placeholder: e.g. 2.0.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Windows version
+      placeholder: e.g. Windows 11 24H2
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      render: shell
