@@ -1,6 +1,6 @@
 appId: dev.lucio73.yoink
 productName: Yoink
-copyright: Copyright © 2026 Lucio73
+copyright: Copyright © 2026 LucioTD
 
 directories:
   output: release
@@ -42,7 +42,7 @@ publish:
   provider: github
   # Explicit owner/repo: without these electron-builder infers the target from
   # .git/config, and a failed inference throws during publishing.
-  owner: Lucio73-collab
+  owner: LucioTD
   repo: yoink
   releaseType: release
 

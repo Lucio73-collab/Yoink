@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "Windows desktop downloader for video and audio from 1800+ sites, with target-size compression and format conversion.",
   "main": "./out/main/index.js",
-  "author": "Lucio73",
+  "author": "LucioTD",
   "license": "GPL-3.0",
   "private": true,
   "type": "module",
@@ -33,6 +33,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Lucio73-collab/yoink.git"
+    "url": "https://github.com/LucioTD/Yoink.git"
   }
 }

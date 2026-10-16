@@ -1,11 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Yoink: Paste a link, get the best quality the source has">
-<title>Yoink</title>
-<defs><linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="#fafafa"/><stop offset="1" stop-color="#fafafa" stop-opacity="0"/></linearGradient></defs>
-<rect width="1280" height="320" rx="20" fill="#fafafa" stroke="#e5e5e5" stroke-width="2"/>
-<g opacity="0.5" stroke="#e5e5e5" stroke-width="1"><path d="M960 0 V320"/><path d="M992 0 V320"/><path d="M1024 0 V320"/><path d="M1056 0 V320"/><path d="M1088 0 V320"/><path d="M1120 0 V320"/><path d="M1152 0 V320"/><path d="M1184 0 V320"/><path d="M1216 0 V320"/><path d="M1248 0 V320"/></g>
-<rect x="960" y="0" width="320" height="320" fill="url(#fade)"/>
-<g transform="translate(96 96) scale(2.0)"><rect x="1" y="1" width="62" height="62" rx="14" fill="#a6e3a1"/><g stroke="#0d0d0d" stroke-linecap="round" fill="none"><path d="M32 15 V35" stroke-width="7"/><path d="M19 50 H45" stroke-width="5"/></g><path d="M21 32 H43 L32 45 Z" fill="#0d0d0d" stroke="#0d0d0d" stroke-width="2" stroke-linejoin="round"/></g>
-<text x="272" y="152" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="84" font-weight="800" fill="#0d0d0d" letter-spacing="-2">Yoink</text>
-<text x="272" y="204" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="30" fill="#555555">Paste a link, get the best quality the source has</text>
-<rect x="272" y="230" width="56" height="6" rx="3" fill="#a6e3a1"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="240" viewBox="0 0 960 240" role="img" aria-labelledby="t"><title id="t">yoink. paste a link, get the best quality the source has</title>
+<rect width="100%" height="100%" fill="#f6f6f6"/>
+<defs><pattern id="d" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5.0" cy="5.0" r="0.6" fill="#8a8a8a"/></pattern></defs><rect width="960" height="240" fill="url(#d)" opacity="0.35"/>
+<path d="M8 20V8H20M952 20V8H940M8 220V232H20M952 220V232H940" stroke="#060606" stroke-width="1" fill="none"/>
+<g stroke="#d42a3c" stroke-width="1"><path d="M856 48V91M856 101V240M620 96H851M861 96H960" opacity="0.9"/><circle cx="856" cy="96" r="2" fill="#d42a3c" stroke="none"/></g>
+<rect x="36" y="26" width="16" height="16" fill="#1254c6"/>
+<text x="60" y="38.5" font-family="ui-monospace,SFMono-Regular,'Cascadia Mono',Consolas,Menlo,monospace" font-size="11" fill="#3a3a3a" letter-spacing="0.8">WINDOWS APP</text>
+<text x="924" y="38.5" text-anchor="end" font-family="ui-monospace,SFMono-Regular,'Cascadia Mono',Consolas,Menlo,monospace" font-size="11" fill="#3a3a3a">YT-DLP / FFMPEG</text>
+<path d="M36 50.5H924" stroke="#8a8a8a" stroke-width="0.75" opacity="0.8"/>
+<path d="M37.62109375 137.640625C39.8359375 138.484375 43.17578125 138.9765625 46.41015625 138.9765625C56.2890625 138.9765625 60.71875 134.01953125 63.14453125 127.5859375L79.3515625 84.6953125H64.7265625L59.1015625 102.625C58.08203125 105.9296875 57.23828125 109.234375 56.4296875 112.8203125C55.8671875 109.234375 55.3046875 105.96484375 54.35546875 102.625L49.2578125 84.6953125H34.421875L48.9765625 124.03515625L49.36328125 125.16015625C50.20703125 127.62109375 47.1484375 129.30859375 42.54296875 128.078125L40.71484375 127.5859375ZM100.14859375 124.703125C112.9103125 124.703125 120.43375 116.546875 120.43375 104.453125C120.43375 92.39453125 112.9103125 84.203125 100.14859375 84.203125C87.3165625 84.203125 79.793125 92.39453125 79.793125 104.453125C79.793125 116.546875 87.3165625 124.703125 100.14859375 124.703125ZM100.14859375 114.15625C96.42203125 114.15625 94.2071875 110.53515625 94.2071875 104.3828125C94.2071875 98.1953125 96.42203125 94.75 100.14859375 94.75C103.80484375 94.75 106.0196875 98.1953125 106.0196875 104.3828125C106.0196875 110.53515625 103.80484375 114.15625 100.14859375 114.15625ZM124.039375 124.0H138.1721875V84.6953125H124.039375ZM131.070625 80.6875C134.90265625 80.6875 138.0315625 77.8046875 138.0315625 74.21875C138.0315625 70.6328125 134.90265625 67.75 131.070625 67.75C127.23859375 67.75 124.1096875 70.6328125 124.1096875 74.21875C124.1096875 77.8046875 127.23859375 80.6875 131.070625 80.6875ZM157.316875 101.921875C157.316875 98.01953125 159.53171875 95.6640625 163.0121875 95.6640625C166.56296875 95.6640625 168.6371875 98.01953125 168.6371875 101.921875V124.0H182.77V98.96875C182.77 90.390625 177.39109375 84.203125 169.0590625 84.203125C162.34421875 84.203125 158.61765625 88.2109375 156.6840625 93.5546875L156.43796875 84.6953125H143.1840625V124.0H157.316875ZM187.781875 124.0H201.9146875V112.8203125L204.0240625 110.1484375L212.0396875 124.0H228.14125L214.4303125 101.921875L227.7896875 84.6953125H211.8990625L202.406875 97.9140625H201.9146875V71.6171875H187.781875ZM239.12968750000002 124.84375C243.24296875000002 124.84375 246.37187500000002 121.78515625 246.37187500000002 117.70703125C246.37187500000002 113.62890625 243.24296875000002 110.5703125 239.12968750000002 110.5703125C235.01640625000002 110.5703125 231.88750000000002 113.62890625 231.88750000000002 117.70703125C231.88750000000002 121.78515625 235.01640625000002 124.84375 239.12968750000002 124.84375Z" fill="#060606"/>
+<text x="37" y="160" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" fill="#3a3a3a">paste a link, get the best quality the source has</text>
+<rect x="36" y="184" width="70.4" height="24" fill="#060606"/>
+<text x="46" y="200.5" font-family="ui-monospace,SFMono-Regular,'Cascadia Mono',Consolas,Menlo,monospace" font-size="12" font-weight="700" fill="#f6f6f6">windows</text>
+<rect x="114.4" y="184" width="68.4" height="24" fill="#c7e6c2"/>
+<text x="123.4" y="200.5" font-family="ui-monospace,SFMono-Regular,'Cascadia Mono',Consolas,Menlo,monospace" font-size="12" fill="#060606">gpl-3.0</text>
+<rect x="770" y="186" width="1" height="20" fill="#060606" opacity="0.85"/>
+<rect x="773.5" y="186" width="2" height="20" fill="#060606" opacity="0.85"/>
+<rect x="778.0" y="186" width="1" height="20" fill="#060606" opacity="0.85"/>
+<rect x="781.5" y="186" width="1" height="20" fill="#060606" opacity="0.85"/>
+<rect x="785.0" y="186" width="3" height="20" fill="#060606" opacity="0.85"/>
+<rect x="790.5" y="186" width="1" height="20" fill="#060606" opacity="0.85"/>
+<rect x="794.0" y="186" width="2" height="20" fill="#060606" opacity="0.85"/>
+<rect x="798.5" y="186" width="1" height="20" fill="#060606" opacity="0.85"/>
+<g stroke="#8a8a8a" stroke-width="0.75" fill="none"><circle cx="748" cy="196" r="5"/><path d="M740 196H756M748 188V204"/></g>
 </svg>

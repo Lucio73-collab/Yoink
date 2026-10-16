@@ -8,21 +8,20 @@
 <p align="center">
   <b>A downloader for Windows.</b> Paste a link, get the highest quality file the source has.
   <br><br>
-  <a href="https://github.com/Lucio73-collab/Yoink/releases/latest"><strong>Download the latest release »</strong></a>
+  <a href="https://github.com/LucioTD/Yoink/releases/latest"><strong>Download the latest release »</strong></a>
   <br><br>
-  <a href="https://github.com/Lucio73-collab/Yoink/issues/new?template=bug_report.yml">Report bug</a>
+  <a href="https://github.com/LucioTD/Yoink/issues/new?template=bug_report.yml">Report bug</a>
   ·
-  <a href="https://github.com/Lucio73-collab/Yoink/issues/new?template=feature_request.yml">Request feature</a>
+  <a href="https://github.com/LucioTD/Yoink/issues/new?template=feature_request.yml">Request feature</a>
   ·
-  <a href="https://github.com/Lucio73-collab/Yoink/releases">Releases</a>
+  <a href="https://github.com/LucioTD/Yoink/releases">Releases</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lucio73-collab/Yoink/releases/latest"><img src="https://img.shields.io/github/v/release/Lucio73-collab/Yoink?style=flat-square&color=a6e3a1&labelColor=111111&label=release" alt="Latest release"></a>
-  <a href="https://github.com/Lucio73-collab/Yoink/releases"><img src="https://img.shields.io/github/downloads/Lucio73-collab/Yoink/total?style=flat-square&color=333333&labelColor=111111" alt="Total downloads"></a>
-  <a href="https://github.com/Lucio73-collab/Yoink/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lucio73-collab/Yoink/build.yml?style=flat-square&label=build&labelColor=111111" alt="Build"></a>
-  <img src="https://img.shields.io/badge/platform-Windows-333333?style=flat-square&logo=windows&labelColor=111111" alt="Windows">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Lucio73-collab/Yoink?style=flat-square&color=333333&labelColor=111111" alt="License"></a>
+  <a href="https://github.com/LucioTD/Yoink/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/LucioTD/Yoink/build.yml?label=build&style=flat-square&labelColor=060606" alt="CI status"></a>
+  <a href="https://github.com/LucioTD/Yoink/releases/latest"><img src="https://img.shields.io/github/v/release/LucioTD/Yoink?label=release&style=flat-square&labelColor=060606&color=1254c6" alt="Latest release"></a>
+  <a href="https://github.com/LucioTD/Yoink/releases"><img src="https://img.shields.io/github/downloads/LucioTD/Yoink/total?style=flat-square&labelColor=060606&color=3a3a3a" alt="Total downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-3a3a3a?style=flat-square&labelColor=060606" alt="GPL-3.0 license"></a>
 </p>
 
 <!-- Screenshot: save a capture of the main window as docs/assets/screenshot.png, then remove this comment wrapper.
@@ -35,7 +34,7 @@
 
 ## Download
 
-Grab the latest build from [Releases](https://github.com/Lucio73-collab/yoink/releases/latest).
+Grab the latest build from [Releases](https://github.com/LucioTD/Yoink/releases/latest).
 
 | File | Use it if |
 |---|---|
