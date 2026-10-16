@@ -24,11 +24,9 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-3a3a3a?style=flat-square&labelColor=060606" alt="GPL-3.0 license"></a>
 </p>
 
-<!-- Screenshot: save a capture of the main window as docs/assets/screenshot.png, then remove this comment wrapper.
 <p align="center">
-  <img src="docs/assets/screenshot.png" alt="Yoink main window" width="800">
+  <img src="docs/assets/screenshot.png" alt="Yoink with two finished downloads and the session throughput graph" width="800">
 </p>
--->
 
 ---
 
